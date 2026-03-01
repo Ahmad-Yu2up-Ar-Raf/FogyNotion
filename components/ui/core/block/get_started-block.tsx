@@ -4,6 +4,7 @@ import { Redirect } from 'expo-router';
 
 import { View } from 'react-native';
 import { Input } from '../../fragments/shadcn-ui/input';
+import { GroupedInput, GroupedInputItem } from '../../fragments/custom-ui/form/input-form';
 
 export const OnboardingPresets = {
   welcome: [
@@ -12,22 +13,42 @@ export const OnboardingPresets = {
       title: 'Sebelum Kita Mulai, Boleh Kenalan Dulu?',
       //   description: 'Kelola uangmu, bayar, dan terima dengan mudah.',
       content: (
-        <>
-          <Input
-            className="w-full"
-            textContentType="emailAddress"
-            autoComplete="email"
-            placeholder="Nama Lengkap"
+        <GroupedInput>
+          <GroupedInputItem
+            label="Name"
+            placeholder="Your name"
+            keyboardType="default"
+            autoComplete="name"
+            autoCapitalize="words"
+            returnKeyType="next"
           />
-        </>
+        </GroupedInput>
       ),
     },
     {
       id: 'features',
-      title: 'Bayar & Kirim Cepat',
-      description: 'Transaksi instan untuk belanja, tagihan, dan transfer.',
+      title: 'Apa nama bisnis atau perusahaan kamu?',
+
       content: (
-        <View className="flex h-fit scale-[.55] content-center items-center justify-start overflow-hidden"></View>
+        <GroupedInput>
+          <GroupedInputItem
+            label="Business Name"
+            placeholder="Your business name"
+            keyboardType="default"
+            autoComplete="name"
+            autoCapitalize="words"
+            returnKeyType="next"
+          />
+          <GroupedInputItem
+            type="textarea"
+            label="Deskripsi Singkat Bisnis Kamu"
+            placeholder="Your business description"
+            keyboardType="default"
+            autoComplete="name"
+            autoCapitalize="words"
+            returnKeyType="next"
+          />
+        </GroupedInput>
       ),
     },
     {

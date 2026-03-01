@@ -207,7 +207,7 @@ export function Onboarding({
             </View>
           </ImageBackground>
         ) : (
-          <View className="h-full w-full content-start items-start justify-start gap-5 px-5 pt-28">
+          <View className="h-full w-full content-start items-start justify-start gap-5 px-5">
             <View className="mb-0 h-fit w-full gap-2 pr-16 text-left">
               {/* <View
                 className="size-fit"
@@ -261,7 +261,26 @@ export function Onboarding({
     };
   });
   return (
-    <SafeAreaView edges={edges} className="relative" style={[styles.container, style]}>
+    <SafeAreaView
+      edges={edges}
+      className={cn(
+        'relative',
+
+        variant == 'default' && 'gap-14'
+      )}
+      style={[styles.container, style]}>
+      {variant === 'default' && edges.includes('top') && (
+        <View className="w-full flex-row items-center justify-between px-5">
+          <View className="relative flex-row items-center gap-7">
+            <Text className="text-center font-cinzel_semibold text-2xl tracking-tighter">
+              Saraya
+            </Text>
+          </View>
+          <Button variant="ghost" size={'sm'} className="rounded-full px-4" onPress={handleSkip}>
+            <Text className=" ">{skipButtonText}</Text>
+          </Button>
+        </View>
+      )}
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.container, animatedStyle]}>
           <ScrollView
@@ -282,7 +301,7 @@ export function Onboarding({
       {/* Progress Dots */}
 
       {/* Skip Button */}
-      {showSkip && !isLastStep && (
+      {showSkip && !isLastStep && variant === 'background' && (
         <View style={styles.skipContainer}>
           <Button
             variant="ghost"
@@ -293,11 +312,13 @@ export function Onboarding({
           </Button>
         </View>
       )}
-      <View className="absolute left-4 top-[60px] flex-row items-center gap-7">
-        <Text className="text-center font-cinzel_semibold text-2xl tracking-tighter text-white">
-          Saraya
-        </Text>
-      </View>
+      {variant === 'background' && (
+        <View className="absolute left-4 top-[60px] flex-row items-center gap-7">
+          <Text className="text-center font-cinzel_semibold text-2xl tracking-tighter text-white">
+            Saraya
+          </Text>
+        </View>
+      )}
       {/* Navigation Buttons */}
       <Animated.View
         className={cn('absolute left-0 right-0 px-5 pb-4')}
@@ -316,7 +337,7 @@ export function Onboarding({
                 size={'lg'}
                 onPress={handleBack}
                 className={cn('h-fit w-full py-3', 'flex-1')}>
-                <Text>{backButtonText}</Text>
+                <Text className="text-lg font-bold">{backButtonText}</Text>
               </Button>
             )}
 

@@ -28,41 +28,15 @@ import Animated, {
 // ============================================
 export interface GroupedInputProps {
   children: React.ReactNode;
-  containerStyle?: ViewStyle;
+  className?: string;
   title?: string;
   titleStyle?: TextStyle;
 }
 
-export const GroupedInput = ({
-  children,
-  containerStyle,
-  title,
-  titleStyle,
-}: GroupedInputProps) => {
-  const childrenArray = React.Children.toArray(children);
-
-  const errors = childrenArray
-    .filter(
-      (child): child is ReactElement<any> =>
-        React.isValidElement(child) && !!(child.props as any).error
-    )
-    .map((child) => child.props.error);
-
+export const GroupedInput = ({ children, className, title, titleStyle }: GroupedInputProps) => {
   return (
-    <View style={containerStyle}>
-      {!!title && (
-        <Text variant="large" className="mb-2 ml-2" style={titleStyle}>
-          {title}
-        </Text>
-      )}
-
-      <View className="gap-4">
-        {childrenArray.map((child, index) => (
-          <View key={index} className="justify-center">
-            {child}
-          </View>
-        ))}
-      </View>
+    <View className={cn('h-full w-full', className)}>
+      <View className="gap-6">{children}</View>
     </View>
   );
 };
@@ -184,70 +158,57 @@ export const GroupedInputItem = forwardRef<TextInputB, GroupedInputItemProps>(
         disabled={disabled}
         className={cn(disabled ? 'opacity-60' : 'opacity-100')}>
         <View className="flex flex-col gap-1.5">
-          {isTextarea ? (
-            <>
-              {(label || rightComponent) && (
-                <View className="mb-2 flex-row items-center gap-2">
-                  <View className="flex-1 flex-row items-center gap-2" pointerEvents="none">
-                    {label && (
-                      <Text
-                        variant="small"
-                        className={cn(error ? 'text-destructive' : 'text-muted-foreground')}
-                        numberOfLines={1}
-                        ellipsizeMode="tail">
-                        {label}
-                      </Text>
-                    )}
-                  </View>
-                  {renderRightComponent()}
-                </View>
+          <View
+            className={cn(
+              'relative flex-row items-center rounded-xl border',
+              // PRIORITY: Error > Focus > Default
+              error
+                ? 'border-destructive' // Error tetap merah meski focused
+                : isFocused
+                  ? 'border-blue-500' // Focus biru kalau gak error
+                  : 'border-border' // Default
+            )}>
+            <View className="relative flex-1">
+              {/* Animated Floating Label */}
+              {label && (
+                <Animated.Text
+                  style={[
+                    {
+                      position: 'absolute',
+                      left: 12,
+                      paddingHorizontal: 4,
+
+                      zIndex: 1,
+                      fontSize: 15,
+                      fontWeight: '400',
+                    },
+                    animatedLabelStyle,
+                  ]}
+                  className={cn(
+                    'bg-transparent transition-all duration-300 ease-out',
+                    isFocused && 'bg-background'
+                  )}>
+                  {label}
+                </Animated.Text>
               )}
 
-              <Textarea
-                ref={ref}
-                placeholder={placeholder}
-                editable={!disabled}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                value={value}
-                className={cn(
-                  'border-0',
-                  error && 'border-destructive text-destructive placeholder:text-destructive'
-                )}
-                {...props}
-              />
-            </>
-          ) : (
-            <View
-              className={cn(
-                'relative flex-row items-center rounded-xl border',
-                // PRIORITY: Error > Focus > Default
-                error
-                  ? 'border-destructive' // Error tetap merah meski focused
-                  : isFocused
-                    ? 'border-blue-500' // Focus biru kalau gak error
-                    : 'border-border' // Default
-              )}>
-              <View className="relative flex-1">
-                {/* Animated Floating Label */}
-                {label && (
-                  <Animated.Text
-                    style={[
-                      {
-                        position: 'absolute',
-                        left: 12,
-                        paddingHorizontal: 4,
-                        backgroundColor: background,
-                        zIndex: 1,
-                        fontSize: 15,
-                        fontWeight: '400',
-                      },
-                      animatedLabelStyle,
-                    ]}>
-                    {label}
-                  </Animated.Text>
-                )}
-
+              {isTextarea ? (
+                <>
+                  <Textarea
+                    ref={ref}
+                    editable={!disabled}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    value={value}
+                    className={cn(
+                      'border-0 bg-transparent',
+                      error && 'text-destructive',
+                      label && 'pt-1.5'
+                    )}
+                    {...props}
+                  />
+                </>
+              ) : (
                 <Input
                   ref={ref}
                   editable={!disabled}
@@ -257,15 +218,14 @@ export const GroupedInputItem = forwardRef<TextInputB, GroupedInputItemProps>(
                   className={cn(
                     'border-0 bg-transparent',
                     error && 'text-destructive',
-                    label && 'pt-3' 
+                    label && 'pt-1.5'
                   )}
                   {...props}
                 />
-              </View>
-
-              {renderRightComponent()}
+              )}
             </View>
-          )}
+            {renderRightComponent()}
+          </View>
 
           {error && showError && <Text className="mt-1 text-sm text-destructive">* {error}</Text>}
         </View>
