@@ -1,6 +1,5 @@
 import '@/global.css';
 
-import { useAuth } from '@clerk/clerk-expo';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,10 +12,7 @@ import { Cinzel_700Bold } from '@expo-google-fonts/cinzel/700Bold';
 import { Cinzel_800ExtraBold } from '@expo-google-fonts/cinzel/800ExtraBold';
 import { Cinzel_900Black } from '@expo-google-fonts/cinzel/900Black';
 import Provider from '@/components/provider/provider';
-export {
-  
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
   return (
@@ -30,7 +26,6 @@ export default function RootLayout() {
 SplashScreen.preventAutoHideAsync();
 
 function Routes() {
-  const { isSignedIn, isLoaded } = useAuth();
   const [loaded, error] = useFonts({
     Cinzel_400Regular,
     Cinzel_500Medium,
@@ -41,53 +36,19 @@ function Routes() {
   });
 
   React.useEffect(() => {
-    if ((isLoaded && loaded) || error) {
+    if (loaded || error) {
       SplashScreen.hideAsync();
     }
-  }, [isLoaded, loaded, error]);
+  }, [loaded, error]);
 
-  if (!isLoaded || !loaded || error) {
+  if (!loaded || error) {
     return null;
   }
 
   return (
     <Stack>
-      {/* Screens only shown when the user is NOT signed in */}
-      <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-
-        <Stack.Screen name="(auth)/welcome" options={SIGN_IN_SCREEN_OPTIONS} />
-        <Stack.Screen name="(auth)/sign-in" options={SIGN_IN_SCREEN_OPTIONS} />
-        <Stack.Screen name="(auth)/sign-up" options={SIGN_UP_SCREEN_OPTIONS} />
-        <Stack.Screen name="(auth)/reset-password" options={DEFAULT_AUTH_SCREEN_OPTIONS} />
-        <Stack.Screen name="(auth)/forgot-password" options={DEFAULT_AUTH_SCREEN_OPTIONS} />
-      </Stack.Protected>
-
-      {/* Screens only shown when the user IS signed in */}
-      <Stack.Protected guard={isSignedIn}>
-        <Stack.Screen name="get_started" options={{ headerShown: false }} />
-        <Stack.Screen name="index" />
-      </Stack.Protected>
-
-      {/* Screens outside the guards are accessible to everyone (e.g. not found) */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="article" options={{ headerShown: false }} />
     </Stack>
   );
 }
-
-const SIGN_IN_SCREEN_OPTIONS = {
-  headerShown: false,
-  title: 'Sign in',
-};
-
-const SIGN_UP_SCREEN_OPTIONS = {
-  presentation: 'modal',
-  title: '',
-  headerTransparent: true,
-  gestureEnabled: false,
-} as const;
-
-const DEFAULT_AUTH_SCREEN_OPTIONS = {
-  title: '',
-  headerShadowVisible: false,
-  headerTransparent: true,
-};

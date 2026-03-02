@@ -4,13 +4,13 @@
     "slug": " ",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/splash.svg",
+    "icon": "./assets/logo/splash.svg",
     "scheme": "saraya",
 
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.svg"
+      "image": "./assets/logo/splash.svg"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -19,14 +19,14 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.svg",
+        "foregroundImage": "./assets/logo/logo.svg",
         "backgroundColor": "#dc2626"
       }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/logo.svg"
+      "favicon": "./assets/logo/logo.svg"
     },
     "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
     "experiments": {
