@@ -23,7 +23,10 @@ type componentProps = ViewProps & {
 
 export function SurahCard({ className, sura, ...props }: componentProps) {
   const navigateToSurah = ({ id }: { id: number }) => {
-    router.push({ pathname: '/(tabs)/quran/[id]', params: { id: id, name: sura.namaLatin } });
+    router.push({
+      pathname: '/(drawer)/(tabs)/quran/[id]',
+      params: { id: id, name: sura.namaLatin },
+    });
   };
 
   return (
@@ -33,17 +36,11 @@ export function SurahCard({ className, sura, ...props }: componentProps) {
         className
       )}
       {...props}>
-      <Pressable
-        android_ripple={{
-          borderless: true,
-          foreground: true,
-        }}
-        onPress={() => navigateToSurah({ id: sura.nomor })}
-        className=" ">
+      <Pressable onPress={() => navigateToSurah({ id: sura.nomor })} className="active:opacity-80">
         <CardContent className="h-full w-full flex-row items-center justify-between px-1">
           {/* LEFT content: flex 1 with right padding reserved for mosque */}
           <CardHeader className="relative z-40 w-fit flex-row items-center gap-6 p-0 py-0">
-            <View className="size-11 content-center overflow-hidden rounded-full bg-primary/10 text-center">
+            <View className="size-11 content-center overflow-hidden rounded-2xl bg-primary/10 text-center">
               <Text className="m-auto font-poppins_semibold text-lg">
                 {sura.nomor > 9 ? sura.nomor : '0' + sura.nomor}
               </Text>

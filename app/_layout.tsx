@@ -6,14 +6,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as React from 'react';
 import { useFonts } from 'expo-font';
 import Provider from '@/components/provider/provider';
-
-export { ErrorBoundary } from 'expo-router';
 import {
   PrayerBootstrapData,
   PrayerProvider,
   initializePrayerData,
 } from '@/hooks/usePrayerContext';
-// Google Fonts
 import { Poppins_400Regular } from '@expo-google-fonts/poppins/400Regular';
 import { Poppins_500Medium } from '@expo-google-fonts/poppins/500Medium';
 import { Poppins_600SemiBold } from '@expo-google-fonts/poppins/600SemiBold';
@@ -23,29 +20,17 @@ import { Teko_400Regular } from '@expo-google-fonts/teko/400Regular';
 import { Teko_500Medium } from '@expo-google-fonts/teko/500Medium';
 import { Teko_600SemiBold } from '@expo-google-fonts/teko/600SemiBold';
 import { Teko_700Bold } from '@expo-google-fonts/teko/700Bold';
-// IMPORTANT: prevent auto hide immediately
+
+export { ErrorBoundary } from 'expo-router';
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  return (
-    <AppBootstrap>
-      <Provider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="article" />
-        </Stack>
-        <PortalHost />
-      </Provider>
-    </AppBootstrap>
-  );
+  return <AppBootstrap />;
 }
 
-/**
- * Global App Bootstrap Layer
- * Semua preload masuk sini
- */
-function AppBootstrap({ children }: { children: React.ReactNode }) {
-  const [fontsLoaded] = useFonts({
+function AppBootstrap() {
+  const [fontsLoaded, fontError] = useFonts({
     Schluber: require('@/assets/fonts/Schluber.otf'),
     Arabic: require('@/assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf'),
     Poppins_400Regular,
@@ -58,32 +43,39 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     Teko_600SemiBold,
     Teko_700Bold,
   });
+
   const [bootstrapData, setBootstrapData] = React.useState<PrayerBootstrapData | null>(null);
-  const [prayerData, setPrayerData] = React.useState<{
-    coords: string;
-    city: string;
-  } | null>(null);
 
   React.useEffect(() => {
+    if (!fontsLoaded && !fontError) return;
     async function prepare() {
-      if (!fontsLoaded) return;
-
-      const data = await initializePrayerData();
-      setBootstrapData(data);
-      setPrayerData({
-        coords: `${data.coordinates.latitude},${data.coordinates.longitude}`,
-        city: data.city,
-      });
-
-      await SplashScreen.hideAsync();
+      try {
+        const data = await initializePrayerData();
+        setBootstrapData(data);
+      } catch {
+        // fallback handled inside initializePrayerData
+      } finally {
+        await SplashScreen.hideAsync();
+      }
     }
-
     prepare();
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded || !prayerData) {
-    return null;
-  }
+  if ((!fontsLoaded && !fontError) || !bootstrapData) return null;
 
-  return <PrayerProvider initialData={bootstrapData!}>{children}</PrayerProvider>;
+  return (
+    <PrayerProvider initialData={bootstrapData}>
+      <Provider>
+        {/*
+          ✅ Stack root hanya punya SATU entry point: (drawer)
+          Semua route (tabs, doa, article) dikelola di dalam Drawer.
+          Stack ini hanya untuk hal-hal di luar Drawer seperti modal global.
+        */}
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(drawer)" />
+        </Stack>
+        <PortalHost />
+      </Provider>
+    </PrayerProvider>
+  );
 }

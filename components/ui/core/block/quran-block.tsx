@@ -1,40 +1,75 @@
 import React from 'react';
-
-import { ActivityIndicator, RefreshControl } from 'react-native';
+import { ActivityIndicator, RefreshControl, View, StyleSheet } from 'react-native';
 import { Text } from '../../fragments/shadcn-ui/text';
 import { surahListQueryOptions } from '@/lib/server/surah/surah-server-queris';
 import { useQuery } from '@tanstack/react-query';
-import { LegendList } from '@legendapp/list';
-import { SurahCard } from '../../fragments/custom-ui/card/surah-card';
+
 import QuranHeader from '../../fragments/custom-ui/header/quran-header';
 
-export default function QuranBlock() {
-  const data = useQuery(surahListQueryOptions());
+import { LegendList } from '@legendapp/list';
+import { SurahCard } from '../../fragments/custom-ui/card/surah-card';
+import LoadingIndicator from '../loading-indicator';
 
-  if (data.isLoading) {
-    return <ActivityIndicator size="large" />;
+export default function QuranBlock() {
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery(surahListQueryOptions());
+
+  // ✅ Loading state — tampilkan skeleton, bukan blank screen
+  if (isLoading) {
+    return <LoadingIndicator />;
   }
 
-  if (data.isError) {
-    return <Text>Terjadi kesalahan</Text>;
+  // ✅ Error state dengan tombol retry
+  if (isError) {
+    return (
+      <View style={styles.center}>
+        <Text className="mb-4 text-center text-muted-foreground">Gagal memuat data surah</Text>
+        <Text className="font-poppins_semibold text-primary" onPress={() => refetch()}>
+          Coba lagi
+        </Text>
+      </View>
+    );
   }
 
   return (
-    <LegendList
-      data={data.data ?? []}
-      renderItem={({ item }) => <SurahCard sura={item} />}
-      keyExtractor={(item) => `surah-${item.nomor}`}
-      numColumns={1}
-      onEndReachedThreshold={1.5}
-      // ✅ Sama dengan explore-products: cover kasus re-check setelah data datang
-      ListHeaderComponent={QuranHeader}
-      contentContainerStyle={{ paddingTop: 120, paddingBottom: 100 }}
-      className="px-5"
- 
-      // ✅ Android removeClippedSubviews bug → hanya aktifkan di iOS
-      maintainVisibleContentPosition
-      recycleItems={true}
-      showsVerticalScrollIndicator={false}
-    />
+    <>
+      <LegendList
+        data={data ?? []}
+        renderItem={({ item }) => <SurahCard sura={item} />}
+        keyExtractor={(item) => `surah-${item.nomor}`}
+        numColumns={1}
+        onEndReachedThreshold={1.5}
+        ListHeaderComponent={QuranHeader}
+        contentContainerStyle={{ paddingTop: 30, paddingBottom: 100 }}
+        className="px-5"
+        // ✅ Pull to refresh
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        maintainVisibleContentPosition
+        recycleItems
+        showsVerticalScrollIndicator={false}
+      />
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 120,
+  },
+  skeletonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+  },
+  skeletonTextGroup: {
+    flex: 1,
+    gap: 4,
+  },
+  skeletonBox: {
+    backgroundColor: 'hsl(30, 50%, 93%)',
+    opacity: 0.7,
+  },
+});

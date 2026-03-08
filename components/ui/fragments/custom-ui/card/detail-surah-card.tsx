@@ -66,7 +66,7 @@ export function SurahDetailCard({
         {/* FULL-WIDTH RADIAL GRADIENT (absolute, covers whole card width) */}
       </CardContent>
       {/* <View className="absolute -bottom-2 right-1 z-50">
-        <Button className="size-11 w-fit rounded-full p-3">
+        <Button className="size-11 w-fit rounded-2xl p-3">
           <Icon as={Play} className="size-full" />
         </Button>
       </View> */}

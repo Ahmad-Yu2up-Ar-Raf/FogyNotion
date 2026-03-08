@@ -10,9 +10,7 @@ import {
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { ActivityIndicator, View, ViewProps } from 'react-native';
-import { useAudioPlayer } from 'expo-audio';
 import { Text } from '../../shadcn-ui/text';
-
 import { Ayat } from '@/type/surah-detail-type';
 import {
   Bookmark,
@@ -23,11 +21,8 @@ import {
 } from 'lucide-react-native';
 import { Button } from '../../shadcn-ui/button';
 import { Icon } from '../../shadcn-ui/icon';
- 
 import { useGlobalAudio } from '@/components/provider/AudioProvider';
 import { useBookmarks } from '@/components/provider/BookmarkProvider';
-
-import { Spinner } from '../../shadcn-ui/spinner';
 import { useLastRead } from '@/components/provider/LastReadProvider';
 
 type componentProps = ViewProps & {
@@ -70,7 +65,7 @@ export function AyatCard({ className, surahNomor, surahNama, ayat, ...props }: c
         {...props}>
         <CardContent className="h-full w-full items-center justify-between gap-8 px-1">
           <View className="w-full flex-row items-center justify-between">
-            <View className="content-center overflow-hidden rounded-full bg-primary/10 px-4 py-0.5 text-center">
+            <View className="content-center overflow-hidden rounded-2xl bg-primary/10 px-4 py-0.5 text-center">
               <Text className="m-auto font-poppins_semibold text-sm">
                 {surahNomor}:{ayat.nomorAyat}
               </Text>

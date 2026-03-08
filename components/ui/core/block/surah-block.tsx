@@ -1,83 +1,100 @@
 // components/ui/core/block/surah-block.tsx
-import React, { useEffect } from 'react';
+// ✅ FIXED: All hooks called at top level — no hooks after early returns
+import React from 'react';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { Text } from '../../fragments/shadcn-ui/text';
 import { surahDetailQueryOptions } from '@/lib/server/surah/surah-server-queris';
 import { useQuery } from '@tanstack/react-query';
 import { LegendList } from '@legendapp/list';
-
 import { AyatCard } from '../../fragments/custom-ui/card/ayat-card';
 import { SurahDetailCard } from '../../fragments/custom-ui/card/detail-surah-card';
-
 import { ChevronLeft, PauseCircleIcon, PlayCircleIcon } from 'lucide-react-native';
-import { SCREEN_OPTIONS } from '../layout/header';
+import { SCREEN_OPTIONS_DETAIL } from '../layout/header';
 import { router, Stack } from 'expo-router';
 import { useGlobalAudio } from '@/components/provider/AudioProvider';
 import { useLastRead } from '@/components/provider/LastReadProvider';
+import LoadingIndicator from '../loading-indicator';
 
-export default function SurahBlock({ id, nameSurah }: { id: number; nameSurah: string }) {
+type Props = {
+  id: number;
+  nameSurah: string;
+};
+
+export default function SurahBlock({ id, nameSurah }: Props) {
+  // ✅ ALL HOOKS AT THE TOP — no exceptions
   const query = useQuery(surahDetailQueryOptions(id));
-  const { data, isLoading, isError, error } = query;
-  if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
   const { setLastRead } = useLastRead();
-  if (isError || !data) {
-    return (
-      <View style={styles.center}>
-        <Text style={{ color: 'red' }}>
-          Error: {String(error?.message ?? 'Tidak bisa load data')}
-        </Text>
-      </View>
-    );
-  }
-  const { play, pause, stop, currentId, isPlaying, isLoading: audioLoading } = useGlobalAudio();
+  const { play, stop, currentId, isPlaying } = useGlobalAudio();
 
-  // ID for full surah audio (distinct id)
+  // ─── Derived values (tidak perlu hooks) ───
+  const { data, isLoading, isError, error } = query;
   const fullAudioId = `surah-full-${id}`;
   const fullAudioUri = data?.audioFull?.['01'] ?? data?.audioFull?.['02'] ?? null;
-
   const isFullActive = currentId === fullAudioId;
   const isFullPlaying = isFullActive && isPlaying;
 
+  // ─── Handlers ───
   const handleFullPlay = async () => {
-    if (!fullAudioUri) return; // fallback
-    // If currently active and playing -> pause; provider will toggle if same id
+    if (!fullAudioUri) return;
     await play(fullAudioId, fullAudioUri);
-    // store last read as surah start
     await setLastRead({
       surahNomor: id,
-      surahName: data?.namaLatin ?? nameSurah ?? undefined,
+      surahName: data?.namaLatin ?? nameSurah,
       ayat: null,
     });
   };
 
-  const LeaveAction = async () => {
-    // stop audio completely when leaving screen
+  const handleLeave = async () => {
     await stop();
-    // then navigate back
-    router.back();
+    router.push('/(drawer)/(tabs)/quran');
   };
 
-  // your Stack.Screen may be re-rendered and reflect updated icons via isFullPlaying
+  // ─── Render states ───
+  if (isLoading) {
+    return <LoadingIndicator loadingText="Memuat data surah..." />;
+  }
+
+  if (isError || !data) {
+    return (
+      <>
+        <Stack.Screen
+          options={SCREEN_OPTIONS_DETAIL({
+            title: nameSurah,
+            rightAction: handleFullPlay,
+            leftAction: handleLeave,
+            id: id,
+            leftIcon: ChevronLeft,
+          })}
+        />
+        <View style={styles.center}>
+          <Text style={{ color: 'red' }}>{String(error?.message ?? 'Tidak bisa load data')}</Text>
+        </View>
+      </>
+    );
+  }
+
   return (
     <>
       <Stack.Screen
-        options={SCREEN_OPTIONS({
-          title: data?.namaLatin ?? nameSurah ?? `Surah ${id}`,
-          transparent: false,
-          leftAction: LeaveAction,
+        options={SCREEN_OPTIONS_DETAIL({
+          title: data.namaLatin ?? nameSurah,
+          id: id,
+          leftAction: handleLeave,
           leftIcon: ChevronLeft,
-          rigthAction: handleFullPlay,
-          rightIcon: isFullPlaying ? PauseCircleIcon : PlayCircleIcon,
+          rightAction: handleFullPlay,
+          isFullPlaying: isFullPlaying,
+          surahSetelahnya: {
+            namaLatin: data.suratSelanjutnya.namaLatin,
+            id: data.suratSelanjutnya.nomor,
+          },
+          surahSebelumnya: {
+            namaLatin: data.suratSebelumnya.namaLatin,
+            id: data.suratSebelumnya.nomor,
+          },
         })}
       />
       <LegendList
-        data={data?.ayat ?? []}
+        data={data.ayat ?? []}
         renderItem={({ item }) => (
           <AyatCard surahNomor={data.nomor} surahNama={data.namaLatin} ayat={item} />
         )}
@@ -92,10 +109,10 @@ export default function SurahBlock({ id, nameSurah }: { id: number; nameSurah: s
             jumlahAyat={data.jumlahAyat}
           />
         }
-        contentContainerStyle={{ paddingTop: 120, gap: 10, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: 20, gap: 10, paddingBottom: 100 }}
         className="px-5"
         maintainVisibleContentPosition
-        recycleItems={true}
+        recycleItems
         showsVerticalScrollIndicator={false}
       />
     </>

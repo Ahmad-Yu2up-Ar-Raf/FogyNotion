@@ -9,7 +9,7 @@ function Tabs({
 }: TabsPrimitive.RootProps & React.RefAttributes<TabsPrimitive.RootRef>) {
   return (
     <TabsPrimitive.Root
-      className={cn('flex flex-col overflow-hidden rounded-full', className)}
+      className={cn('flex flex-col overflow-hidden rounded-2xl', className)}
       {...props}
     />
   );
@@ -22,7 +22,7 @@ function TabsList({
   return (
     <TabsPrimitive.List
       className={cn(
-        'flex h-fit flex-row items-center justify-center gap-2 rounded-full bg-secondary/10 p-1',
+        'flex h-fit flex-row items-center justify-center gap-2 rounded-2xl bg-secondary/10 p-1',
         Platform.select({ web: 'inline-flex w-fit', native: 'mr-auto' }),
         className
       )}

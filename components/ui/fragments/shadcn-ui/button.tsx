@@ -25,7 +25,7 @@ const buttonVariants = cva(
           })
         ),
         outline: cn(
-          'border border-border bg-background shadow-sm shadow-black/5 active:bg-accent dark:border-input dark:bg-input/30 dark:active:bg-input/50',
+          'border border-border bg-background shadow-sm shadow-black/5 active:bg-accent dark:border-muted dark:bg-input/30 dark:active:bg-input/50',
           Platform.select({
             web: 'hover:bg-accent dark:hover:bg-input/50',
           })
@@ -109,10 +109,6 @@ function Button({ className, variant, size, onPress, ...props }: ButtonProps) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <Pressable
-        android_ripple={{
-          borderless: true,
-          foreground: true,
-        }}
         className={cn(
           props.disabled && 'opacity-50',
           buttonVariants({ variant, size }),
