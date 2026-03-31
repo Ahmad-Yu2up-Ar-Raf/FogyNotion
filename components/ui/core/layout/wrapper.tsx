@@ -51,7 +51,7 @@ export function Wrapper({
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
-        contentContainerClassName={cn('flex-col bg-background gap-3 relative', className)}
+        contentContainerClassName={cn('flex-col pt-20 bg-background gap-3 relative', className)}
         contentContainerStyle={contentContainerStyle}
         showsVerticalScrollIndicator={false}
         // ✅ NEW: animated style untuk ScrollView container (bukan contentContainer)

@@ -19,24 +19,15 @@
 //
 
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from 'nativewind';
 import { THEME } from '@/lib/theme';
 import { Text } from '@/components/ui/fragments/shadcn-ui/text';
-import { MenuIcon, MoreHorizontal, SearchIcon, type LucideIcon } from 'lucide-react-native';
-import { Button, buttonTextVariants, buttonVariants } from '../../fragments/shadcn-ui/button';
+import { SearchIcon, ShoppingCartIcon, type LucideIcon } from 'lucide-react-native';
+import { Button } from '../../fragments/shadcn-ui/button';
 import { Icon } from '../../fragments/shadcn-ui/icon';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/fragments/shadcn-ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import { router } from 'expo-router';
+
 import { MenuSheet } from './menu-sheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -101,12 +92,12 @@ function HeaderComponent({
         </View>
 
         {/* Title */}
-        <Text
+        {/* <Text
           variant="h4"
           className="flex-1 text-center font-schluber text-xl tracking-tight"
           numberOfLines={1}>
           {title}
-        </Text>
+        </Text> */}
 
         {/* Right action */}
         <View className="items-end">
@@ -122,7 +113,7 @@ function HeaderComponent({
             </Button>
           ) : (
             <Button variant={'ghost'} size={'icon'}>
-              <Icon as={SearchIcon} className="size-5" />
+              <Icon as={ShoppingCartIcon} className="size-5" />
             </Button>
           )}
         </View>
@@ -159,131 +150,6 @@ export const SCREEN_OPTIONS = ({
       rightIcon={rightIcon}
       children={children}
       rightAction={rightAction}
-    />
-  ),
-});
-
-function HeaderComponentDetail({
-  title,
-  transparent = true,
-  id,
-  rightAction,
-  leftIcon: LeftIcon,
-  isFullPlaying,
-  leftAction,
-  surahSetelahnya,
-  surahSebelumnya,
-}: HeaderComponentProps) {
-  // ✅ Hook aman di sini karena ini adalah proper React component
-  const insets = useSafeAreaInsets();
-  const { colorScheme } = useColorScheme();
-  const currentTheme = colorScheme ?? 'light';
-
-  const bgColor = transparent ? 'transparent' : THEME[currentTheme].background;
-  const navigateTo = ({ id, name }: { id: number; name: string }) => {
-    router.push({ pathname: '/(drawer)/(tabs)/quran/[id]', params: { id: id, name: name } });
-  };
-
-  return (
-    <>
-      <View
-        style={{ paddingTop: insets.top, backgroundColor: bgColor }}
-        className="flex-row items-center justify-between px-3 pb-3">
-        {/* Left action */}
-        <View className="w-10 items-start">
-          {LeftIcon && leftAction ? (
-            <Button
-              variant={'ghost'}
-              size={'icon'}
-              onPress={leftAction}
-              className="rounded-2xl p-1 active:opacity-60">
-              <Icon as={LeftIcon} className="size-5" />
-            </Button>
-          ) : (
-            <MenuSheet />
-          )}
-        </View>
-
-        {/* Title */}
-        <Text
-          variant="h4"
-          className="flex-1 text-center font-schluber text-xl tracking-tight"
-          numberOfLines={1}>
-          {title}
-        </Text>
-
-        {/* Right action */}
-        <View className="items-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                buttonTextVariants({ variant: 'ghost', size: 'icon' }),
-                buttonVariants({ variant: 'ghost', size: 'icon' })
-              )}>
-              <Icon as={MoreHorizontal} className="size-5" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel className="sr-only">
-                <Text>Menu</Text>
-              </DropdownMenuLabel>
-              {/* <DropdownMenuSeparator /> */}
-              <DropdownMenuItem
-                onPress={() => {
-                  navigateTo({
-                    id: surahSetelahnya?.id ?? 1,
-                    name: surahSetelahnya?.namaLatin ?? '',
-                  });
-                }}>
-                <Text>Next Surah</Text>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onPress={() => {
-                  navigateTo({
-                    id: surahSebelumnya?.id ?? 1,
-                    name: surahSebelumnya?.namaLatin ?? '',
-                  });
-                }}>
-                <Text>Previous Surah</Text>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onPress={() => {
-                  if (rightAction) rightAction();
-                }}>
-                <Text>{isFullPlaying ? 'Pause Audio' : 'Play Audio'}</Text>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </View>
-      </View>
-    </>
-  );
-}
-
-export const SCREEN_OPTIONS_DETAIL = ({
-  title,
-  id,
-  rightAction,
-  leftIcon,
-  isFullPlaying,
-  leftAction,
-  surahSetelahnya,
-  surahSebelumnya,
-}: ScreenOptionsParams) => ({
-  headerShown: true,
-
-  // ✅ KUNCI FIX: bukan `header: (props) => { useSomething(); ... }`
-  // melainkan `header: () => <ProperComponent />`
-  // React renders HeaderComponent sebagai component → hooks order terjaga
-  header: () => (
-    <HeaderComponentDetail
-      isFullPlaying={isFullPlaying}
-      title={title}
-      rightAction={rightAction}
-      leftIcon={leftIcon}
-      leftAction={leftAction}
-      surahSetelahnya={surahSetelahnya}
-      surahSebelumnya={surahSebelumnya}
-      id={id}
     />
   ),
 });

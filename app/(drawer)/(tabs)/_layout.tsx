@@ -4,11 +4,11 @@ import { THEME } from '@/lib/theme';
 import { useColorScheme } from 'nativewind';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/ui/core/haptic-tab';
-import KabbahIcon from '@/components/ui/fragments/svg/icons/kabbah';
-import QuranIcon from '@/components/ui/fragments/svg/icons/quran';
-import MasjidIcon from '@/components/ui/fragments/svg/icons/masjid';
+import KabbahIcon from '@/components/ui/fragments/svg/icons/heart';
+import MenuIcon from '@/components/ui/fragments/svg/icons/menu-icon';
+
 import { View } from 'react-native';
-import SettingIcon from '@/components/ui/fragments/svg/icons/setting';
+import ProfileIcon from '@/components/ui/fragments/svg/icons/profile-icon';
 import HomeIcon from '@/components/ui/fragments/svg/icons/home';
 import { Text } from '@/components/ui/fragments/shadcn-ui/text';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
   const currentTheme = colorScheme ?? 'light';
-  const tintColor = THEME[currentTheme].secondary;
+  const tintColor = THEME[currentTheme].primary;
   const backgroundColor = THEME[currentTheme].background;
   const mutedForeground = THEME[currentTheme].mutedForeground;
   const inactiveTintColor = THEME[currentTheme].mutedForeground;
@@ -61,7 +61,7 @@ export default function TabsLayout() {
                 className={cn(
                   'mt-1.5 text-xs',
                   focused
-                    ? 'font-poppins_semibold text-secondary'
+                    ? 'font-poppins_semibold text-accent-foreground'
                     : 'font-poppins_medium text-muted-foreground'
                 )}>
                 Home
@@ -86,16 +86,16 @@ export default function TabsLayout() {
                 className={cn(
                   'mt-1.5 text-xs',
                   focused
-                    ? 'font-poppins_semibold text-secondary'
+                    ? 'font-poppins_semibold text-accent-foreground'
                     : 'font-poppins_medium text-muted-foreground'
                 )}>
-                Quran
+                Menu
               </Text>
             ),
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
               <View className="scale-1">
-                <QuranIcon fill={color} />
+                <MenuIcon fill={color} />
               </View>
             ),
           }}
@@ -109,10 +109,10 @@ export default function TabsLayout() {
                 className={cn(
                   'mt-1.5 text-xs',
                   focused
-                    ? 'font-poppins_semibold text-secondary'
+                    ? 'font-poppins_semibold text-accent-foreground'
                     : 'font-poppins_medium text-muted-foreground'
                 )}>
-                Qibla
+                Like
               </Text>
             ),
             tabBarIcon: ({ color, focused }) => <KabbahIcon fill={color} />,
@@ -128,15 +128,15 @@ export default function TabsLayout() {
                 className={cn(
                   'mt-1.5 text-xs',
                   focused
-                    ? 'font-poppins_semibold text-secondary'
+                    ? 'font-poppins_semibold text-accent-foreground'
                     : 'font-poppins_medium text-muted-foreground'
                 )}>
-                Settings
+                Me
               </Text>
             ),
             tabBarIcon: ({ color, focused }) => (
               <View className="mb-1 size-full p-0.5">
-                <SettingIcon fill={color} />
+                <ProfileIcon fill={color} />
               </View>
             ),
           }}

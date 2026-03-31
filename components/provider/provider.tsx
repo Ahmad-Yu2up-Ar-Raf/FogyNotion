@@ -1,5 +1,3 @@
-// components/provider/provider.tsx
-// ✅ FIXED: Removed duplicate <PortalHost /> — it belongs ONLY in root _layout.tsx
 import React from 'react';
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from '@react-navigation/native';
@@ -8,9 +6,9 @@ import { useColorScheme } from 'nativewind';
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
 import type { AppStateStatus } from 'react-native';
-import { AudioProvider } from './AudioProvider';
-import { BookmarkProvider } from './BookmarkProvider';
-import { LastReadProvider } from './LastReadProvider';
+
+import { ToastProvider } from '../ui/fragments/shadcn-ui/toast';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 type ComponentProps = {
   children?: React.ReactNode;
@@ -59,11 +57,9 @@ export default function Provider({ children }: ComponentProps) {
           - Audio: di luar Bookmark karena audio bisa jalan lintas screen
           - Bookmark: paling dalam, scoped ke konten
         */}
-        <LastReadProvider>
-          <AudioProvider>
-            <BookmarkProvider>{children}</BookmarkProvider>
-          </AudioProvider>
-        </LastReadProvider>
+        <GestureHandlerRootView>
+          <ToastProvider>{children}</ToastProvider>
+        </GestureHandlerRootView>
         {/*
           ❌ DIHAPUS: <PortalHost /> dari sini
           PortalHost hanya boleh ada SATU, letaknya di root _layout.tsx

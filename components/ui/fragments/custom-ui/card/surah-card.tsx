@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils';
 import { Pressable, View, ViewProps } from 'react-native';
 
 import { Datum } from '@/type/surah-type';
-import Meccah from '../../svg/icons/makkah-icon';
+ 
 import { Text } from '../../shadcn-ui/text';
-import MasjidIcon from '../../svg/icons/masjid';
+ 
 import { router } from 'expo-router';
 
 type componentProps = ViewProps & {
@@ -50,11 +50,7 @@ export function SurahCard({ className, sura, ...props }: componentProps) {
                 {sura.namaLatin}
               </CardTitle>
               <View className="flex-row items-center gap-2">
-                {sura.tempatTurun && sura.tempatTurun === 'Mekah' ? (
-                  <Meccah className="" />
-                ) : (
-                  <MasjidIcon />
-                )}
+               
 
                 <Text variant={'muted'} className="font-poppins_medium text-muted-foreground/40">
                   •

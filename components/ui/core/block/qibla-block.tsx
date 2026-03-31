@@ -9,7 +9,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useIsFocused } from '@react-navigation/native';
 import { Wrapper } from '../layout/wrapper';
 import { Text } from '../../fragments/shadcn-ui/text';
-import KabbahIcon from '../../fragments/svg/icons/kabbah';
+import KabbahIcon from '../../fragments/svg/icons/heart';
 import ArrowSvg from '../../fragments/svg/arrow';
 import PollyGon from '../../fragments/svg/pollygon';
 import { useQibla } from '@/hooks/Useqibla ';
