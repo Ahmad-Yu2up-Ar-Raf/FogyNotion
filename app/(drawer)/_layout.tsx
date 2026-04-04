@@ -24,15 +24,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DRAWER_MENU = [
   { label: '🏠  Home', route: '/(drawer)/(tabs)/', match: '/(tabs)' },
-  { label: '📖  Quran', route: '/(drawer)/(tabs)/quran', match: '/quran' },
-  { label: '🕌  Qibla', route: '/(drawer)/(tabs)/qibla', match: '/qibla' },
-  { label: '🤲 Doa', route: '/(drawer)/doa', match: '/doa' },
-  { label: '📚  Dzikir', route: '/(drawer)/dzikir', match: '/dzikir' },
-  { label: '⭐ Asmaul Husna', route: '/(drawer)/asmaul_husna', match: '/asmaul_husna' },
-  { label: '🤖 Ai Chat', route: '/(drawer)/chat', match: '/chat' },
-  { label: '📖 Hadist', route: '/(drawer)/hadist', match: '/hadist' },
-  { label: '📰  Article', route: '/(drawer)/article', match: '/article' },
-  { label: '⚙️  Settings', route: '/(drawer)/(tabs)/settings', match: '/settings' },
+  { label: '📖  Cart', route: '/(drawer)/(tabs)/cart', match: '/cart' },
+  { label: '🕌  Liked', route: '/(drawer)/(tabs)/liked', match: '/liked' },
+
+  { label: '⚙️  Profile', route: '/(drawer)/(tabs)/profile', match: '/profile' },
 ] as const;
 
 // ─── Custom Drawer Content ────────────────────────────────────────────────────
@@ -53,7 +48,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       }}>
       {/* Branding */}
       <View className="px-5 pb-5">
-        <Text className="font-schluber text-2xl tracking-tight">Gurun</Text>
+        <Text className="font-poppins_semiboldtext-2xl tracking-tight">Gurun</Text>
         <Text className="mt-0.5 font-poppins_regular text-xs text-muted-foreground">
           Islamic Companion App
         </Text>
@@ -123,7 +118,7 @@ export default function DrawerLayout() {
           swipeEnabled: true,
           swipeEdgeWidth: 50,
         }}>
-        {/* ✅ (tabs) — entry point utama, berisi Home/Quran/Qibla/Settings */}
+        {/* ✅ (tabs) — entry point utama, berisi Home/Cart/Liked/Profile */}
         <Drawer.Screen
           name="(tabs)"
           options={{
@@ -131,52 +126,6 @@ export default function DrawerLayout() {
             drawerItemStyle: { display: 'none' }, // hide — pakai CustomDrawerContent
           }}
         />
-
-        {/* ✅ doa & article sekarang di dalam Drawer */}
-        {/* MenuSheet di kedua screen ini juga bisa trigger drawer */}
-        <Drawer.Screen
-          name="doa"
-          options={{
-            drawerLabel: 'Doa',
-            drawerItemStyle: { display: 'none' },
-          }}
-        />
-        <Drawer.Screen
-          name="article"
-          options={{
-            drawerLabel: 'Article',
-            drawerItemStyle: { display: 'none' },
-          }}
-        />
-        <Drawer.Screen
-          name="dzikir"
-          options={{
-            drawerLabel: 'Dzikir',
-            drawerItemStyle: { display: 'none' },
-          }}
-        />
-        <Drawer.Screen
-          name="hadist"
-          options={{
-            drawerLabel: 'Hadist',
-            drawerItemStyle: { display: 'none' },
-          }}
-        />
-        <Drawer.Screen
-          name="asmaul_husna"
-          options={{
-            drawerLabel: 'Asmaul Husna',
-            drawerItemStyle: { display: 'none' },
-          }}
-        />
-        <Drawer.Screen
-          name="chat"
-          options={{
-            drawerLabel: 'Chat',
-            drawerItemStyle: { display: 'none' },
-          }}
-        />
-
       </Drawer>
     </GestureHandlerRootView>
   );

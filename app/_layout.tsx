@@ -20,9 +20,22 @@ import { Teko_400Regular } from '@expo-google-fonts/teko/400Regular';
 import { Teko_500Medium } from '@expo-google-fonts/teko/500Medium';
 import { Teko_600SemiBold } from '@expo-google-fonts/teko/600SemiBold';
 import { Teko_700Bold } from '@expo-google-fonts/teko/700Bold';
-
+import { CactusClassicalSerif_400Regular } from '@expo-google-fonts/cactus-classical-serif';
 export { ErrorBoundary } from 'expo-router';
-
+import {
+  SourceSerifPro_200ExtraLight,
+  SourceSerifPro_200ExtraLight_Italic,
+  SourceSerifPro_300Light,
+  SourceSerifPro_300Light_Italic,
+  SourceSerifPro_400Regular,
+  SourceSerifPro_400Regular_Italic,
+  SourceSerifPro_600SemiBold,
+  SourceSerifPro_600SemiBold_Italic,
+  SourceSerifPro_700Bold,
+  SourceSerifPro_700Bold_Italic,
+  SourceSerifPro_900Black,
+  SourceSerifPro_900Black_Italic,
+} from '@expo-google-fonts/source-serif-pro';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -32,14 +45,31 @@ export default function RootLayout() {
 function AppBootstrap() {
   const [fontsLoaded, fontError] = useFonts({
     Schluber: require('@/assets/fonts/Schluber.otf'),
+    HanSerifRegular: require('@/assets/fonts/SourceHanSerifHK-Regular.otf'),
+    HanSerifSemiBold: require('@/assets/fonts/SourceHanSerifHK-SemiBold.otf'),
+    HanSerifMedium: require('@/assets/fonts/SourceHanSerifHK-Medium.otf'),
+    HanSerifBold: require('@/assets/fonts/SourceHanSerifHK-Bold.otf'),
     Arabic: require('@/assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf'),
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
     Poppins_700Bold,
+    CactusClassicalSerif_400Regular,
     Teko_300Light,
     Teko_400Regular,
     Teko_500Medium,
+    SourceSerifPro_200ExtraLight,
+    SourceSerifPro_200ExtraLight_Italic,
+    SourceSerifPro_300Light,
+    SourceSerifPro_300Light_Italic,
+    SourceSerifPro_400Regular,
+    SourceSerifPro_400Regular_Italic,
+    SourceSerifPro_600SemiBold,
+    SourceSerifPro_600SemiBold_Italic,
+    SourceSerifPro_700Bold,
+    SourceSerifPro_700Bold_Italic,
+    SourceSerifPro_900Black,
+    SourceSerifPro_900Black_Italic,
     Teko_600SemiBold,
     Teko_700Bold,
   });

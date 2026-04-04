@@ -4,20 +4,18 @@ import { THEME } from '@/lib/theme';
 import { useColorScheme } from 'nativewind';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/ui/core/haptic-tab';
-import KabbahIcon from '@/components/ui/fragments/svg/icons/heart';
-import MenuIcon from '@/components/ui/fragments/svg/icons/menu-icon';
+import HeartIcon from '@/components/ui/fragments/svg/icons/heart';
+import CartIcon from '@/components/ui/fragments/svg/icons/cart-icon';
 
 import { View } from 'react-native';
 import ProfileIcon from '@/components/ui/fragments/svg/icons/profile-icon';
 import HomeIcon from '@/components/ui/fragments/svg/icons/home';
-import { Text } from '@/components/ui/fragments/shadcn-ui/text';
-import { cn } from '@/lib/utils';
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
   const currentTheme = colorScheme ?? 'light';
   const tintColor = THEME[currentTheme].primary;
-  const backgroundColor = THEME[currentTheme].background;
+  const backgroundColor = THEME[currentTheme].card;
   const mutedForeground = THEME[currentTheme].mutedForeground;
   const inactiveTintColor = THEME[currentTheme].mutedForeground;
 
@@ -35,11 +33,11 @@ export default function TabsLayout() {
           tabBarStyle: {
             backgroundColor,
 
-            height: 70 + insets.bottom, // ✅ CRITICAL: Tinggi + bottom inset
-            paddingTop: 13,
+            height: 60 + insets.bottom,
+            paddingTop: 17,
             display: 'flex',
             alignItems: 'center',
-
+            paddingHorizontal: 0,
             borderTopWidth: 0.5,
             borderTopColor: THEME[currentTheme].background,
             shadowColor: mutedForeground,
@@ -56,87 +54,63 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: 'Home',
-            tabBarLabel: ({ color, focused }) => (
-              <Text
-                className={cn(
-                  'mt-1.5 text-xs',
-                  focused
-                    ? 'font-poppins_semibold text-accent-foreground'
-                    : 'font-poppins_medium text-muted-foreground'
-                )}>
-                Home
-              </Text>
-            ),
+            tabBarShowLabel: false,
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
               <View className="scale-1">
-                <HomeIcon fill={color} />
+                <HomeIcon
+                  fill={focused ? tintColor : 'none'}
+                  stroke={focused ? 'none' : inactiveTintColor}
+                />
               </View>
             ),
           }}
         />
 
         <Tabs.Screen
-          name="quran"
+          name="cart"
           options={{
             headerShown: false,
-            title: 'Quran',
-            tabBarLabel: ({ color, focused }) => (
-              <Text
-                className={cn(
-                  'mt-1.5 text-xs',
-                  focused
-                    ? 'font-poppins_semibold text-accent-foreground'
-                    : 'font-poppins_medium text-muted-foreground'
-                )}>
-                Menu
-              </Text>
-            ),
+            title: 'Cart',
+            tabBarShowLabel: false,
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
               <View className="scale-1">
-                <MenuIcon fill={color} />
+                <CartIcon
+                  fill={focused ? tintColor : 'none'}
+                  stroke={focused ? tintColor : inactiveTintColor}
+                />
               </View>
             ),
           }}
         />
         <Tabs.Screen
-          name="qibla"
+          name="liked"
           options={{
-            title: 'Qibla',
-            tabBarLabel: ({ color, focused }) => (
-              <Text
-                className={cn(
-                  'mt-1.5 text-xs',
-                  focused
-                    ? 'font-poppins_semibold text-accent-foreground'
-                    : 'font-poppins_medium text-muted-foreground'
-                )}>
-                Like
-              </Text>
+            title: 'Liked',
+            tabBarShowLabel: false,
+            tabBarButton: HapticTab,
+            tabBarIcon: ({ color, focused }) => (
+              <HeartIcon
+                fill={focused ? tintColor : 'none'}
+                stroke={focused ? tintColor : inactiveTintColor}
+              />
             ),
-            tabBarIcon: ({ color, focused }) => <KabbahIcon fill={color} />,
           }}
         />
         <Tabs.Screen
-          name="settings"
+          name="profile"
           options={{
             headerShown: false,
-            title: 'Settings',
-            tabBarLabel: ({ color, focused }) => (
-              <Text
-                className={cn(
-                  'mt-1.5 text-xs',
-                  focused
-                    ? 'font-poppins_semibold text-accent-foreground'
-                    : 'font-poppins_medium text-muted-foreground'
-                )}>
-                Me
-              </Text>
-            ),
+            title: 'Profile',
+            tabBarShowLabel: false,
+            tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
               <View className="mb-1 size-full p-0.5">
-                <ProfileIcon fill={color} />
+                <ProfileIcon
+                  fill={focused ? tintColor : 'none'}
+                  stroke={focused ? tintColor : inactiveTintColor}
+                />
               </View>
             ),
           }}

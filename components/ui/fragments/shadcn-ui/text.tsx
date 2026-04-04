@@ -76,9 +76,14 @@ function Text({
   }) {
   const textClass = React.useContext(TextClassContext);
   const Component = asChild ? Slot.Text : RNText;
+  
+  // Default ke poppins hanya jika className nggak punya font class
+  const hasFontClass = className?.includes('font-');
+  const defaultFont = hasFontClass ? '' : 'font-poppins_regular';
+  
   return (
     <Component
-      className={cn('font-poppins_regular', textVariants({ variant }), textClass, className)}
+      className={cn(defaultFont, textVariants({ variant }), textClass, className)}
       role={variant ? ROLE[variant] : undefined}
       aria-level={variant ? ARIA_LEVEL[variant] : undefined}
       {...props}

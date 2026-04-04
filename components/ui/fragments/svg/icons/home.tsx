@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Svg, { SvgProps, Path } from 'react-native-svg';
 const HomeIcon = (props: SvgProps) => (
-  <Svg fill="none" viewBox="0 0 24 24" width={24} height={24} {...props}>
+  <Svg viewBox="0 0 24 24" strokeWidth={2} width={24} height={24} {...props}>
     <Path
       fill={props.fill ?? 'currentColor'}
       fillRule="evenodd"

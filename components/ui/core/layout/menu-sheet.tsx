@@ -6,20 +6,20 @@
 // terdekat di atas tree — works dari (tabs), doa, maupun article.
 
 import { Button } from '@/components/ui/fragments/shadcn-ui/button';
-import { Icon } from '../../fragments/shadcn-ui/icon';
-import { MenuIcon } from 'lucide-react-native';
+
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
+import MenuSheetIcon from '../../fragments/svg/icons/menu-icon';
 
 export function MenuSheet() {
   const navigation = useNavigation();
 
   return (
     <Button
-      variant="ghost"
       size="icon"
+      className="size-12 rounded-full bg-card"
       onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-      <Icon as={MenuIcon} className="size-5" />
+      <MenuSheetIcon className="size-5" />
     </Button>
   );
 }
