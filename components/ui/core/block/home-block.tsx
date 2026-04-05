@@ -1,5 +1,3 @@
-// components/ui/core/block/home-block.tsx
-
 import React from 'react';
 import { Wrapper } from '../layout/wrapper';
 import { useQuery } from '@tanstack/react-query';
@@ -9,9 +7,14 @@ import LoadingIndicator from '../loading-indicator';
 import { RefreshControl, View } from 'react-native';
 import { LegendList } from '@legendapp/list';
 import { ProductCard } from '../../fragments/custom-ui/card/product-card';
+import { Button } from '../../fragments/shadcn-ui/button';
+import LottieView from 'lottie-react-native';
+import { Icon } from '../../fragments/shadcn-ui/icon';
+import { RotateCwIcon } from 'lucide-react-native';
 export default function HomeBlock() {
+  const [baseUrl, setBaseUrl] = React.useState('https://dummyjson.com/productsdasd');
   const { data, isLoading, isError, refetch, isRefetching } = useQuery(
-    ProductsListQueryOptions({})
+    ProductsListQueryOptions({ base_url: baseUrl })
   );
   if (isLoading) {
     return <LoadingIndicator />;
@@ -19,12 +22,37 @@ export default function HomeBlock() {
 
   if (isError) {
     return (
-      <View className="flex-1 content-center justify-center">
-        <Text className="mb-4 text-center text-muted-foreground">Gagal memuat data Products</Text>
-        <Text className="font-poppins_semibold text-primary" onPress={() => refetch()}>
-          Coba lagi
-        </Text>
-      </View>
+      <Wrapper
+        className="flex-1 content-center items-center justify-center"
+        edges={['bottom', 'left', 'right']}>
+        <LottieView
+          autoPlay
+          style={{
+            width: 200,
+            height: 200,
+          }}
+          // Find more Lottie files at https://lottiefiles.com/featured
+          source={require('@/assets/animations/error.json')}
+        />
+        <Text className="mb-2 text-center text-muted-foreground">Gagal memuat data Products</Text>
+        <Button
+          disabled={isRefetching}
+          size={'lg'}
+          className="gap-2"
+          onPress={() => {
+            setBaseUrl('https://dummyjson.com/products/category/groceries'); // ✅ Ubah URL ke yang benar
+            refetch();
+          }}>
+          <View className="h-full w-fit flex-row items-center justify-center gap-3">
+            <Text className="font-poppins_medium text-sm">Coba lagi</Text>
+            {isRefetching ? (
+              <LoadingIndicator />
+            ) : (
+              <Icon className="text-primary-foreground" as={RotateCwIcon} />
+            )}
+          </View>
+        </Button>
+      </Wrapper>
     );
   }
   return (
@@ -35,7 +63,7 @@ export default function HomeBlock() {
       numColumns={2}
       onEndReachedThreshold={1.5}
       contentContainerStyle={{ paddingTop: 30, gap: 20, paddingBottom: 100 }}
-      className="px-5"
+      className="px-7"
       ListHeaderComponent={HeaderComponent}
       // ✅ Pull to refresh
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
@@ -49,8 +77,10 @@ export default function HomeBlock() {
 function HeaderComponent() {
   return (
     <>
-      <View className=" px-6">
-        <Text variant={'h2'}>Products List</Text>
+      <View className="mb-10 flex-row items-center justify-between gap-2">
+        <Text variant={'h3'} className="font-poppins_semibold tracking-tighter text-foreground/95">
+          New Products
+        </Text>
       </View>
     </>
   );

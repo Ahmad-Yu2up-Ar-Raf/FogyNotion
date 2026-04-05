@@ -1,13 +1,11 @@
 // lib/server/Products/Products-server.ts
 import { Product, ProductResponse } from '@/type/product-type';
 
-const BASE_URL = 'https://dummyjson.com/products/category/groceries';
-
 /**
  * fetchAllProducts
  */
-export async function fetchAllProducts(): Promise<Product[]> {
-  const url = BASE_URL;
+export async function fetchAllProducts(base_url: string): Promise<Product[]> {
+  const url = base_url;
   const res = await fetch(url);
   ``;
 

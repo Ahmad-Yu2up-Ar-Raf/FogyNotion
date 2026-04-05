@@ -5,11 +5,12 @@ import { useColorScheme } from 'nativewind';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/ui/core/haptic-tab';
 import HeartIcon from '@/components/ui/fragments/svg/icons/heart';
-import CartIcon from '@/components/ui/fragments/svg/icons/cart-icon';
 
 import { View } from 'react-native';
 import ProfileIcon from '@/components/ui/fragments/svg/icons/profile-icon';
 import HomeIcon from '@/components/ui/fragments/svg/icons/home';
+
+import NotifIcon from '@/components/ui/fragments/svg/icons/notif-icon';
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
@@ -34,7 +35,7 @@ export default function TabsLayout() {
             backgroundColor,
 
             height: 60 + insets.bottom,
-            paddingTop: 17,
+            paddingTop: 10,
             display: 'flex',
             alignItems: 'center',
             paddingHorizontal: 0,
@@ -57,30 +58,26 @@ export default function TabsLayout() {
             tabBarShowLabel: false,
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
-              <View className="scale-1">
-                <HomeIcon
-                  fill={focused ? tintColor : 'none'}
-                  stroke={focused ? 'none' : inactiveTintColor}
-                />
-              </View>
+              <HomeIcon
+                fill={focused ? tintColor : 'none'}
+                stroke={focused ? 'none' : inactiveTintColor}
+              />
             ),
           }}
         />
 
         <Tabs.Screen
-          name="cart"
+          name="inbox"
           options={{
             headerShown: false,
-            title: 'Cart',
+            title: 'Inbox',
             tabBarShowLabel: false,
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
-              <View className="scale-1">
-                <CartIcon
-                  fill={focused ? tintColor : 'none'}
-                  stroke={focused ? tintColor : inactiveTintColor}
-                />
-              </View>
+              <NotifIcon
+                fill={focused ? tintColor : 'none'}
+                stroke={focused ? tintColor : inactiveTintColor}
+              />
             ),
           }}
         />

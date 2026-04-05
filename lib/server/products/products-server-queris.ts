@@ -46,14 +46,14 @@ export const ProductsKeys = {
 // ─── List Query Options ───────────────────────────────────────────────────────
 // Reusable di seluruh app: cukup pass `filters` yang berbeda
 // TanStack Query handle dedup + caching otomatis berdasarkan queryKey
-export function ProductsListQueryOptions(filters?: ProductsListFilters) {
+export function ProductsListQueryOptions(filters?: ProductsListFilters & { base_url: string }) {
   return queryOptions({
     queryKey: ProductsKeys.list(filters),
 
     queryFn: async (): Promise<Product[]> => {
       // Fetch semua data sekali → di-cache oleh TanStack
       // Filter dilakukan in-memory → switch filter = instant, tanpa network call
-      const all = await fetchAllProducts();
+      const all = await fetchAllProducts(filters?.base_url ?? 'https://dummyjson.com/products');
       if (!filters) return all;
 
       const q = filters.search?.trim().toLowerCase() ?? '';

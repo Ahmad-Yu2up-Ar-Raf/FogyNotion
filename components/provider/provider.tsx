@@ -9,6 +9,7 @@ import type { AppStateStatus } from 'react-native';
 
 import { ToastProvider } from '../ui/fragments/shadcn-ui/toast';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { CartProvider } from './CartProvider';
 
 type ComponentProps = {
   children?: React.ReactNode;
@@ -53,18 +54,15 @@ export default function Provider({ children }: ComponentProps) {
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         {/*
           ✅ Provider order:
-          - LastRead: paling luar karena dibutuhkan AudioProvider (audio sambil baca)
-          - Audio: di luar Bookmark karena audio bisa jalan lintas screen
-          - Bookmark: paling dalam, scoped ke konten
+          - CartProvider: top level untuk global cart access
+          - GestureHandlerRootView: untuk gesture handling
+          - ToastProvider: untuk toast notifications
         */}
-        <GestureHandlerRootView>
-          <ToastProvider>{children}</ToastProvider>
-        </GestureHandlerRootView>
-        {/*
-          ❌ DIHAPUS: <PortalHost /> dari sini
-          PortalHost hanya boleh ada SATU, letaknya di root _layout.tsx
-          Duplikasi PortalHost → context collision → hook order error di BottomTabView
-        */}
+        <CartProvider>
+          <GestureHandlerRootView>
+            <ToastProvider>{children}</ToastProvider>
+          </GestureHandlerRootView>
+        </CartProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

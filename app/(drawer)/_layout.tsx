@@ -24,7 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DRAWER_MENU = [
   { label: '🏠  Home', route: '/(drawer)/(tabs)/', match: '/(tabs)' },
-  { label: '📖  Cart', route: '/(drawer)/(tabs)/cart', match: '/cart' },
+  { label: '📖  Inbox', route: '/(drawer)/(tabs)/inbox', match: '/inbox' },
   { label: '🕌  Liked', route: '/(drawer)/(tabs)/liked', match: '/liked' },
 
   { label: '⚙️  Profile', route: '/(drawer)/(tabs)/profile', match: '/profile' },
@@ -118,7 +118,7 @@ export default function DrawerLayout() {
           swipeEnabled: true,
           swipeEdgeWidth: 50,
         }}>
-        {/* ✅ (tabs) — entry point utama, berisi Home/Cart/Liked/Profile */}
+        {/* ✅ (tabs) — entry point utama, berisi Home/Inbox/Liked/Profile */}
         <Drawer.Screen
           name="(tabs)"
           options={{
