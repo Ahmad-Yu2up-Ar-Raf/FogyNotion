@@ -12,6 +12,7 @@ import { UserAvatar } from '@/components/ui/core/feauture/auth/user-menu';
 import { Icon } from '@/components/ui/fragments/shadcn-ui/icon';
 import { FolderClosed, FolderIcon, FolderOpen, HeartIcon } from 'lucide-react-native';
 import ArchiveIcon from '@/components/ui/fragments/svg/icons/archive-icon';
+import { cn } from '@/lib/utils';
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
@@ -129,7 +130,9 @@ export default function TabsLayout() {
             title: 'Profile',
             tabBarShowLabel: false,
             tabBarButton: HapticTab,
-            tabBarIcon: ({ color, focused }) => <UserAvatar className="size-7" />,
+            tabBarIcon: ({ color, focused }) => (
+              <UserAvatar className={cn('size-7', focused && 'border-2 size-8 border-primary')} />
+            ),
           }}
         />
 

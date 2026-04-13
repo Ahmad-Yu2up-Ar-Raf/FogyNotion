@@ -44,7 +44,7 @@ export function Wrapper({
   contentContainerStyle,
 }: WrapperProps) {
   return (
-    <SafeAreaView edges={edges} className={cn('flex flex-1 px-7', containerClassName)}>
+    <SafeAreaView edges={edges} className={cn('flex flex-1 px-4', containerClassName)}>
       <Animated.ScrollView
         ref={scrollRef}
         onScroll={onScroll}

@@ -78,7 +78,7 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
   const [isSaving, setIsSaving] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
+
   // ✅ Pre-calculate initial heights from noteData to prevent visible changes
   const [titleHeight, setTitleHeight] = useState(() => {
     const titleText = noteData?.title ?? '';
@@ -102,8 +102,6 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
     title: noteData?.title ?? '',
     content: noteData?.content ?? '',
   });
-
-
 
   // ─────────────────────────────────────────────────────────────
   // 3️⃣ HOOKS
@@ -146,12 +144,12 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
     if (mode === 'edit' && noteData) {
       const titleText = noteData.title ?? '';
       const contentText = noteData.content ?? '';
-      
+
       // Pre-calculate heights to prevent visible changes
       const newTitleHeight = titleText.length > 40 ? 80 : 60;
       const lineCount = (contentText.match(/\n/g) || []).length + 1;
       const newContentHeight = Math.max(200, lineCount * 24);
-      
+
       setTitleHeight(newTitleHeight);
       setContentHeight(newContentHeight);
     }
@@ -181,12 +179,12 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
   const handleTitleHeightChange = useCallback(
     (event: { nativeEvent: { contentSize: { height: number } } }) => {
       const newHeight = Math.max(60, event.nativeEvent.contentSize.height);
-      
+
       // ✅ Debounce height updates (16ms = one frame)
       if (titleHeightTimerRef.current) {
         clearTimeout(titleHeightTimerRef.current);
       }
-      
+
       titleHeightTimerRef.current = setTimeout(() => {
         setTitleHeight(newHeight);
       }, 16);
@@ -197,12 +195,12 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
   const handleContentHeightChange = useCallback(
     (event: { nativeEvent: { contentSize: { height: number } } }) => {
       const newHeight = Math.max(200, event.nativeEvent.contentSize.height);
-      
+
       // ✅ Debounce height updates (16ms = one frame)
       if (contentHeightTimerRef.current) {
         clearTimeout(contentHeightTimerRef.current);
       }
-      
+
       contentHeightTimerRef.current = setTimeout(() => {
         setContentHeight(newHeight);
       }, 16);
@@ -217,8 +215,6 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
       if (contentHeightTimerRef.current) clearTimeout(contentHeightTimerRef.current);
     };
   }, []);
-
-
 
   // ─────────────────────────────────────────────────────────────
   // 8️⃣ TITLE KEY PRESS (Enter -> move to content with proper timing!)
@@ -280,8 +276,9 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
 
             // Clear form (if creating)
             if (mode === 'create') {
-              setPostText({ title: '', content: '' });
-              initialStateRef.current = { title: '', content: '' };
+              setTimeout(() => setPostText({ title: '', content: '' }), 300);
+              setTimeout(() => (initialStateRef.current = { title: '', content: '' }), 300);
+
               setTitleHeight(60);
               setContentHeight(200);
             } else {
@@ -289,13 +286,11 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
               initialStateRef.current = { title, content };
             }
 
-
-
             // Show success
-            success('Saved!', mode === 'edit' ? 'Note updated' : 'Your note has been saved');
 
             // Navigate back after short delay
             setTimeout(() => router.back(), 500);
+            success('Saved!', mode === 'edit' ? 'Note updated' : 'Your note has been saved');
           }
         } catch (error) {
           console.error('❌ Save error:', error);
@@ -459,7 +454,14 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
         />
       </View>
     ),
-    [postText.title, titleHeight, isSaving, handleTitleChange, handleTitleKeyPress, handleTitleHeightChange]
+    [
+      postText.title,
+      titleHeight,
+      isSaving,
+      handleTitleChange,
+      handleTitleKeyPress,
+      handleTitleHeightChange,
+    ]
   );
 
   const ContentSection = useMemo(
@@ -480,7 +482,14 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
         />
       </View>
     ),
-    [postText.content, contentHeight, isSaving, handleContentChange, handleContentFocus, handleContentHeightChange]
+    [
+      postText.content,
+      contentHeight,
+      isSaving,
+      handleContentChange,
+      handleContentFocus,
+      handleContentHeightChange,
+    ]
   );
 
   return (
@@ -497,7 +506,7 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
           <ScrollView
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 8 }}
+            contentContainerStyle={{ paddingBottom: 11 }}
             scrollEnabled={true}
             className="flex-1">
             {/* SPACING FROM TOP */}
@@ -517,7 +526,7 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
           </ScrollView>
 
           {/* ✅ STICKY FOOTER - Character counter stays at bottom, scrolls content above it */}
-          <View className="border-t border-border/30 bg-background px-4 py-2">
+          <View className="border-t border-border/30 bg-background px-4 py-6">
             <View className="flex-row justify-between gap-2">
               <Text className="text-xs text-muted-foreground/60">
                 {postText.content.length} chars
@@ -532,15 +541,17 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
       <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure? Your unsaved note will be lost. </AlertDialogDescription>
+            <AlertDialogTitle>Save changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Save before leaving?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Text>Keep</Text>
-            </AlertDialogCancel>
-            <AlertDialogAction onPress={handleConfirmDiscard}>
+            <AlertDialogCancel onPress={handleConfirmDiscard}>
               <Text>Discard</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction variant={'default'} onPress={handleSaveNote}>
+              <Text>Save</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -557,8 +568,8 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
             <AlertDialogCancel>
               <Text>Cancel</Text>
             </AlertDialogCancel>
-            <AlertDialogAction onPress={handleConfirmDelete}>
-              <Text className="text-destructive">Delete</Text>
+            <AlertDialogAction variant={'destructive'} onPress={handleConfirmDelete}>
+              <Text>Delete</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

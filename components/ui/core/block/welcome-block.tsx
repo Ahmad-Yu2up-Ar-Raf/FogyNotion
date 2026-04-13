@@ -49,11 +49,11 @@ const WelcomeBlock = ({
         <View
           className={cn('absolute -right-4 h-fit w-full scale-[1.12]')}
           style={{
-            top: insets.top > 0 ? insets.top - 50 : 12,
+            top: insets.top > 0 ? insets.top - 80 : 12,
           }}>
           <ReactangleSVG className="relative size-full" />
         </View>
-        <Card className="m-auto flex h-full w-full max-w-sm content-center justify-center gap-7 border-0 bg-transparent p-2 shadow-none sm:border-border">
+        <Card className="m-auto flex h-full w-full max-w-sm content-center justify-center gap-6 border-0 bg-transparent p-2 shadow-none sm:border-border">
           <CardHeader className="relative flex w-full flex-col content-center items-center justify-center gap-8 overflow-visible p-0">
             <View
               className="flex scale-[1.2] content-center items-center justify-center overflow-visible rounded-full"
