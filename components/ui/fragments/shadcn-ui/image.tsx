@@ -196,7 +196,7 @@ export const Image = forwardRef<ExpoImage, ImageProps>(
 
     // ─── Variant classes ──────────────────────────────────────
     const variantClass =
-      variant === 'circle' ? 'rounded-full' : variant === 'rounded' ? 'rounded-lg' : '';
+      variant === 'circle' ? 'rounded-full' : variant === 'rounded' ? 'rounded-2xl' : '';
 
     // ─── Effective source ─────────────────────────────────────
     // If resolved URI is null (invalid), use fallback directly

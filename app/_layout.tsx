@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as React from 'react';
 import { useFonts } from 'expo-font';
 import Provider from '@/components/provider/provider';
+import { Poppins_300Light } from '@expo-google-fonts/poppins';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins/400Regular';
 import { Poppins_500Medium } from '@expo-google-fonts/poppins/500Medium';
 import { Poppins_600SemiBold } from '@expo-google-fonts/poppins/600SemiBold';
@@ -41,6 +42,7 @@ export default function RootLayout() {
 function AppBootstrap() {
   const { isSignedIn, isLoaded } = useAuth();
   const [fontsLoaded, fontError] = useFonts({
+    Poppins_300Light,
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,

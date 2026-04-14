@@ -215,7 +215,7 @@ export function Toast({
                     dismiss();
                   }}
                   className={cn(
-                    'rounded-lg px-3 py-1.5 active:opacity-70',
+                    'rounded-2xl px-3 py-1.5 active:opacity-70',
                     getActionButtonClasses()
                   )}>
                   <AlertTitle className="mb-0 text-xs text-primary-foreground">
@@ -226,7 +226,7 @@ export function Toast({
 
               <TouchableOpacity
                 onPress={dismiss}
-                className="rounded-lg p-1 active:opacity-70"
+                className="rounded-2xl p-1 active:opacity-70"
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <X size={16} className="text-muted-foreground" />
               </TouchableOpacity>

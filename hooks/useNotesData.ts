@@ -43,9 +43,7 @@ export function NotesListQueryOptions() {
  * Main hook for fetching notes
  */
 export function useNotesData() {
-  const { data, isLoading, isError, refetch, isRefetching } = useQuery(
-    NotesListQueryOptions()
-  );
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery(NotesListQueryOptions());
 
   return {
     notes: data ?? [],

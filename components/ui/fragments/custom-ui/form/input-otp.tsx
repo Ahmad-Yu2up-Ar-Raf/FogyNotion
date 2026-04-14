@@ -145,7 +145,7 @@ export const InputOTP = forwardRef<InputOTPRef, InputOTPProps>(
             disabled={disabled}
             className={cn(
               // base
-              'size-12 items-center justify-center rounded-lg border',
+              'size-12 items-center justify-center rounded-2xl border',
               // border colour: error → active → default
               error ? 'border-destructive' : isActive ? 'border-ring' : 'border-border',
               // bg + disabled state

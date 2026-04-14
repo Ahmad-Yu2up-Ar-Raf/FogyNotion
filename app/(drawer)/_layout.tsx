@@ -13,9 +13,8 @@ import { Href, router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/fragments/shadcn-ui/button';
 import {
-  Archive,
   FolderClosed,
-  FolderIcon,
+ 
   FolderOpenIcon,
   LogOutIcon,
   LucideIcon,
@@ -46,9 +45,9 @@ const DRAWER_MENU: DrawerMenuItem[] = [
   {
     Icon: FolderClosed,
     activeIcon: FolderOpenIcon,
-    label: 'Archive',
-    route: '/(drawer)/(tabs)/archive',
-    match: '/archive',
+    label: 'project',
+    route: '/(drawer)/(tabs)/project',
+    match: '/project',
   },
   { Icon: Trash2Icon, label: 'Trash', route: '/(drawer)/trash', match: '/trash' },
   { Icon: Settings, label: 'Settings', route: '/(drawer)/settings', match: '/settings' },

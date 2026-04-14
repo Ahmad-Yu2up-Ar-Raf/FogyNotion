@@ -14,27 +14,9 @@ import { Icon } from '../../fragments/shadcn-ui/icon';
 import { PlusIcon, RotateCwIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { TodoCard } from '../../fragments/custom-ui/card/todo-card';
-import { deleteTodo } from '@/lib/storage/todos-storage';
-import { useToast } from '../../fragments/shadcn-ui/toast';
 
 export default function HomeBlock() {
   const { data, isLoading, isError, refetch, isRefetching } = useQuery(TodosListQueryOptions());
-  const { error: showError } = useToast();
-  const handleDeleteNote = useCallback(
-    async (noteId: string) => {
-      try {
-        console.log('Hello');
-        const success = await deleteTodo(noteId);
-        if (success) {
-          await refetch();
-        }
-      } catch (error) {
-        console.error('❌ Delete failed:', error);
-        showError('Error', 'Failed to delete note');
-      }
-    },
-    [refetch, showError]
-  );
 
   const handleNewNote = useCallback(() => {
     router.push('/(drawer)/post');
@@ -101,9 +83,7 @@ export default function HomeBlock() {
   return (
     <LegendList
       data={data}
-      renderItem={({ item, index }) => (
-        <TodoCard index={index} onDelete={handleDeleteNote} todo={item} />
-      )}
+      renderItem={({ item, index }) => <TodoCard index={index} todo={item} />}
       keyExtractor={(item, index) => `todo-${item}-${index}`}
       numColumns={1}
       onEndReachedThreshold={1.5}

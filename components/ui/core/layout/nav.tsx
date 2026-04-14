@@ -1,23 +1,3 @@
-// components/ui/core/layout/header.tsx
-//
-// ✅ ROOT CAUSE FIX — Hook Order Violation (BottomTabView & SceneView error)
-//
-// ❌ WRONG PATTERN (penyebab error):
-//   header: (props) => {
-//     const insets = useSafeAreaInsets();  ← Hook dipanggil di dalam render prop
-//     return <View>...</View>              ← React tidak tahu ini "component"
-//   }
-//
-//   React Navigation memanggil fungsi `header` ini di dalam .map() BottomTabView.
-//   Karena dipanggil sebagai plain function (bukan lewat JSX), React tidak bisa
-//   track hooks dengan benar → "change in order of Hooks" error.
-//
-// ✅ CORRECT PATTERN:
-//   Pindahkan semua hooks ke dalam komponen React yang proper (PascalCase).
-//   Arrow function di `header:` hanya menjadi thin wrapper yang return JSX.
-//   React akan render <HeaderComponent /> sebagai proper component → hooks aman.
-//
-
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,12 +10,15 @@ import LogoApp, { LogoAdaptive } from '../../fragments/svg/logo-app';
 import { MenuSheet } from './menu-sheet';
 
 import { Icon } from '../../fragments/shadcn-ui/icon';
-import { useLiked } from '@/components/provider/LikedProvider';
 
 import { router } from 'expo-router';
-import LogoAppIcon from '../../fragments/svg/logo-app';
-import { UserMenu } from '../feauture/auth/user-menu';
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../fragments/shadcn-ui/dropdown-menu';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ScreenOptionsParams {
@@ -74,9 +57,9 @@ function HeaderComponent({
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const currentTheme = colorScheme ?? 'light';
-  const { count: cartCount } = useLiked(); // ✅ Get cart count
+
   const handleLeave = () => {
-    router.back();
+    router.push('/');
   };
   const handlePost = () => {
     router.push('/(drawer)/post');
@@ -96,7 +79,7 @@ function HeaderComponent({
               variant={'ghost'}
               onPress={leftAction ?? handleLeave}
               size="icon"
-              className="size-12 rounded-full  ">
+              className="size-12 rounded-full">
               <Icon as={LeftIcon} className="size-6" />
             </Button>
           ) : (
@@ -142,17 +125,31 @@ function HeaderComponent({
               variant={'ghost'}
               onPress={rightAction ?? handleLeave}
               size="icon"
-              className="size-12 rounded-full  ">
+              className="size-12 rounded-full">
               <Icon as={RightIcon} className="size-6" />
             </Button>
           ) : (
-            <Button
-              variant={'ghost'}
-              onPress={rightAction ?? handlePost}
-              size="icon"
-              className="size-12 rounded-full ">
-              <Icon as={PlusIcon} className="size-6" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-10">
+                  <Icon as={PlusIcon} className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="min-w-[160px]">
+                <DropdownMenuItem
+                  onPress={() => {
+                    router.push('/(drawer)/post');
+                  }}
+                  className="gap-2">
+                  <Text>To DO</Text>
+                </DropdownMenuItem>
+
+                {/* RESET OPTION */}
+
+                {/* DELETE OPTION */}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </View>
       </View>
@@ -191,5 +188,5 @@ export const SCREEN_OPTIONS = ({
       children={children}
       rightAction={rightAction}
     />
-    ),
+  ),
 });

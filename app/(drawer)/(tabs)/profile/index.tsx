@@ -1,13 +1,7 @@
-import { SCREEN_OPTIONS } from '@/components/ui/core/layout/nav';
-
-import { Link, Stack } from 'expo-router';
+import ProfileBlock from '@/components/ui/core/block/profile-block';
 
 import * as React from 'react';
 
 export default function Screen() {
-  return (
-    <>
-      <Stack.Screen options={SCREEN_OPTIONS({ title: 'Inbox' })} />
-    </>
-  );
+  return <ProfileBlock />;
 }

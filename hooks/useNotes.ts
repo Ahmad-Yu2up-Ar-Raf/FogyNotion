@@ -89,7 +89,7 @@ export function useNotes(): UseNotesReturn {
           savedNote = await createNote(title, content);
         }
 
-        // Reload notes dari storage untuk sync
+        // Reload notes dari storage untuk sync\
         await loadAllNotes();
 
         // ✅ INVALIDATE QUERY CACHE: So list view updates
@@ -111,32 +111,35 @@ export function useNotes(): UseNotesReturn {
   /**
    * ✅ DELETE NOTE
    */
-  const removeNote = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const removeNote = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      const success = await deleteNote(id);
+        const success = await deleteNote(id);
 
-      if (success) {
-        // Update local state immediately untuk UX yang lebih smooth
-        setNotes((prev) => prev.filter((n) => n.id !== id));
-        console.log('✅ Note deleted locally');
+        if (success) {
+          // Update local state immediately untuk UX yang lebih smooth
+          setNotes((prev) => prev.filter((n) => n.id !== id));
+          console.log('✅ Note deleted locally');
 
-        // ✅ INVALIDATE QUERY CACHE: So list view updates
-        queryClient.invalidateQueries({ queryKey: ['notes'] });
+          // ✅ INVALIDATE QUERY CACHE: So list view updates
+          queryClient.invalidateQueries({ queryKey: ['notes'] });
+        }
+
+        return success;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Failed to delete note';
+        setError(errorMsg);
+        console.error('❌ removeNote:', errorMsg);
+        return false;
+      } finally {
+        setIsLoading(false);
       }
-
-      return success;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to delete note';
-      setError(errorMsg);
-      console.error('❌ removeNote:', errorMsg);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [queryClient]);
+    },
+    [queryClient]
+  );
 
   /**
    * ✅ CLEAR ERROR

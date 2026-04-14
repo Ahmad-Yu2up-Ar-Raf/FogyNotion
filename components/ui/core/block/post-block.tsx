@@ -1,300 +1,119 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo, ReactNode } from 'react';
-import { SCREEN_OPTIONS, ScreenOptionsParams } from '@/components/ui/core/layout/nav';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Wrapper } from '../layout/wrapper';
+
+import { Text } from '../../fragments/shadcn-ui/text';
+import { View, Platform } from 'react-native';
+
+import { useToast } from '../../fragments/shadcn-ui/toast';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedKeyboard, useAnimatedStyle } from 'react-native-reanimated';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Button } from '../../fragments/shadcn-ui/button';
+import { Calendar } from 'lucide-react-native';
+import { SCREEN_OPTIONS } from '../layout/nav';
 import { router, Stack } from 'expo-router';
 import { ChevronLeftIcon, MoreHorizontalIcon } from 'lucide-react-native';
-import { Wrapper } from '../layout/wrapper';
-import { batasiHuruf, batasiKata } from '@/hooks/useWord';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/fragments/shadcn-ui/radio-group';
+import { Input } from '../../fragments/shadcn-ui/input';
+import { Label } from '../../fragments/shadcn-ui/label';
+import { useTodos } from '@/hooks/useTodo';
+import { Todo, Todos } from '@/lib/storage/todos-storage';
 import { Textarea } from '../../fragments/shadcn-ui/textarea';
-import { useNotes } from '@/hooks/useNotes';
-import { useToast } from '../../fragments/shadcn-ui/toast';
-import { deleteNote, Note } from '@/lib/storage/notes-storage';
-import {
-  ActivityIndicator,
-  View,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput as RNTextInput,
-  Keyboard,
-  ScrollView,
-} from 'react-native';
-import { Button } from '../../fragments/shadcn-ui/button';
-import { Text } from '../../fragments/shadcn-ui/text';
+import * as Haptics from 'expo-haptics';
 import { Icon } from '../../fragments/shadcn-ui/icon';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../../fragments/shadcn-ui/alert-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../../fragments/shadcn-ui/dropdown-menu';
-
-/**
- * ✅ TYPE DEFINITIONS
- * Complete type safety - zero `any` types
- */
-interface TextInputRef extends RNTextInput {}
-
-interface TextState {
-  title: string;
-  content: string;
-}
+import { cn } from '@/lib/utils';
+import { Spinner } from '../../fragments/shadcn-ui/spinner';
 
 export interface PostBlockProps {
-  mode?: 'create' | 'edit'; // Default: 'create'
-  noteData?: Note; // For edit mode - pre-fill data
+  mode?: 'create' | 'edit';
+  todoData?: Todos;
 }
-
-/**
- * ✅ PostBlock Component - IMPROVED VERSION
- *
- * ✨ FEATURES:
- * 1. ✅ Create & Edit modes (reusable)
- * 2. ✅ Keyboard always above text (high offset)
- * 3. ✅ Dropdown menu (save/reset/delete)
- * 4. ✅ NO HEIGHT FLICKER (ref-based heights)
- * 5. ✅ Toast feedback for all actions
- * 6. ✅ Optimistic UI (instant feedback)
- * 7. ✅ Smooth animations
- * 8. ✅ 100% type safe
- */
-export default function PostBlock({ mode = 'create', noteData }: PostBlockProps) {
-  // ─────────────────────────────────────────────────────────────
-  // 1️⃣ STATE MANAGEMENT (Only for content, not heights!)
-  // ─────────────────────────────────────────────────────────────
-  const [postText, setPostText] = useState<TextState>({
-    title: noteData?.title ?? '',
-    content: noteData?.content ?? '',
+export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps) {
+  const { saveTodo } = useTodos();
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const dateFromTodo = todoData?.date;
+    if (!dateFromTodo) return new Date();
+    if (dateFromTodo instanceof Date) return dateFromTodo;
+    return new Date(dateFromTodo); // Convert string to Date if needed
   });
-
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [postData, setPostData] = useState<Todo>({
+    title: todoData?.title ?? '',
+    content: todoData?.content ?? '',
+    status: todoData?.status ?? false,
+    date: todoData?.date ?? undefined,
+    intensity: todoData?.intensity ?? 'High Priority',
+  });
+  const initialStateRef = useRef<Todo>({
+    title: todoData?.title ?? '',
+    content: todoData?.content ?? '',
+    status: todoData?.status ?? false,
+    date: todoData?.date ?? undefined,
+    intensity: todoData?.intensity ?? 'High Priority',
+  });
   const [isSaving, setIsSaving] = useState(false);
-  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  // ✅ Pre-calculate initial heights from noteData to prevent visible changes
-  const [titleHeight, setTitleHeight] = useState(() => {
-    const titleText = noteData?.title ?? '';
-    return titleText.length > 40 ? 80 : 60;
-  });
-  const [contentHeight, setContentHeight] = useState(() => {
-    const contentText = noteData?.content ?? '';
-    const lineCount = (contentText.match(/\n/g) || []).length + 1;
-    return Math.max(200, lineCount * 24);
-  });
-
-  // ─────────────────────────────────────────────────────────────
-  // 2️⃣ REFS (No state for heights - prevents flicker!)
-  // ─────────────────────────────────────────────────────────────
-  const titleInputRef = useRef<TextInputRef>(null);
-  const contentInputRef = useRef<TextInputRef>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  // Track initial text for discard detection
-  const initialStateRef = useRef<TextState>({
-    title: noteData?.title ?? '',
-    content: noteData?.content ?? '',
-  });
-
-  // ─────────────────────────────────────────────────────────────
-  // 3️⃣ HOOKS
-  // ─────────────────────────────────────────────────────────────
-  const { saveNote } = useNotes();
   const { success, error: showError } = useToast();
-
-  // ─────────────────────────────────────────────────────────────
-  // 4️⃣ MEMOIZED VALUES
-  // ─────────────────────────────────────────────────────────────
-  const displayTitle = useMemo(() => {
-    if (mode === 'edit') {
-      return 'Edit Note';
-    }
-    const truncated = batasiHuruf(postText.title, 10);
-    return batasiKata(truncated, 2) || 'New Note';
-  }, [postText.title, mode]);
-
-  const hasChanges = useMemo(
-    () =>
-      postText.title.trim() !== initialStateRef.current.title.trim() ||
-      postText.content.trim() !== initialStateRef.current.content.trim(),
-    [postText]
-  );
-
-  // ─────────────────────────────────────────────────────────────
-  // 5️⃣ AUTO FOCUS & CLEANUP
-  // ─────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      titleInputRef.current?.focus();
-      console.log('✅ Auto focused to title input');
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // ✅ Recalculate heights when noteData changes (edit mode)
-  useEffect(() => {
-    if (mode === 'edit' && noteData) {
-      const titleText = noteData.title ?? '';
-      const contentText = noteData.content ?? '';
-
-      // Pre-calculate heights to prevent visible changes
-      const newTitleHeight = titleText.length > 40 ? 80 : 60;
-      const lineCount = (contentText.match(/\n/g) || []).length + 1;
-      const newContentHeight = Math.max(200, lineCount * 24);
-
-      setTitleHeight(newTitleHeight);
-      setContentHeight(newContentHeight);
-    }
-  }, [mode, noteData]);
-
-  // ─────────────────────────────────────────────────────────────
-  // 6️⃣ TEXT CHANGE HANDLERS (Memoized for stability)
-  // ─────────────────────────────────────────────────────────────
-  const handleTitleChange = useCallback((text: string) => {
-    // Remove newlines from title
-    const cleanedText = text.replace(/\n/g, '');
-    setPostText((prev) => ({ ...prev, title: cleanedText }));
-    console.log('📝 Title:', cleanedText.substring(0, 20) || '(empty)');
-  }, []);
-
-  const handleContentChange = useCallback((text: string) => {
-    setPostText((prev) => ({ ...prev, content: text }));
-    console.log('📝 Content updated');
-  }, []);
-
-  // ─────────────────────────────────────────────────────────────
-  // 7️⃣ DYNAMIC HEIGHT HANDLERS (Debounced to prevent flashing!)
-  // ─────────────────────────────────────────────────────────────
-  const titleHeightTimerRef = useRef<NodeJS.Timeout | number | null>(null);
-  const contentHeightTimerRef = useRef<NodeJS.Timeout | number | null>(null);
-
-  const handleTitleHeightChange = useCallback(
-    (event: { nativeEvent: { contentSize: { height: number } } }) => {
-      const newHeight = Math.max(60, event.nativeEvent.contentSize.height);
-
-      // ✅ Debounce height updates (16ms = one frame)
-      if (titleHeightTimerRef.current) {
-        clearTimeout(titleHeightTimerRef.current);
-      }
-
-      titleHeightTimerRef.current = setTimeout(() => {
-        setTitleHeight(newHeight);
-      }, 16);
-    },
-    []
-  );
-
-  const handleContentHeightChange = useCallback(
-    (event: { nativeEvent: { contentSize: { height: number } } }) => {
-      const newHeight = Math.max(200, event.nativeEvent.contentSize.height);
-
-      // ✅ Debounce height updates (16ms = one frame)
-      if (contentHeightTimerRef.current) {
-        clearTimeout(contentHeightTimerRef.current);
-      }
-
-      contentHeightTimerRef.current = setTimeout(() => {
-        setContentHeight(newHeight);
-      }, 16);
-    },
-    []
-  );
-
-  // ✅ Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (titleHeightTimerRef.current) clearTimeout(titleHeightTimerRef.current);
-      if (contentHeightTimerRef.current) clearTimeout(contentHeightTimerRef.current);
-    };
-  }, []);
-
-  // ─────────────────────────────────────────────────────────────
-  // 8️⃣ TITLE KEY PRESS (Enter -> move to content with proper timing!)
-  // ─────────────────────────────────────────────────────────────
-  const handleTitleKeyPress = useCallback((e: { nativeEvent: { key: string } }) => {
-    if (e.nativeEvent.key === 'Enter') {
-      // ✅ Use requestAnimationFrame to focus AFTER render completes
-      // This prevents the content from disappearing
-      requestAnimationFrame(() => {
-        contentInputRef.current?.focus();
-        console.log('➡️ Focus moved to content');
-      });
-    }
-  }, []);
-
-  // ─────────────────────────────────────────────────────────────
-  // 8️⃣B AUTO-SCROLL WHEN CONTENT TEXTAREA FOCUSED
-  // ─────────────────────────────────────────────────────────────
-  const handleContentFocus = useCallback(() => {
-    // Scroll to content textarea position (approximately 130 offset for title + spacing)
-    scrollViewRef.current?.scrollTo({
-      y: 130,
-      animated: true,
-    });
-    console.log('📍 Scrolled to content textarea');
-  }, []);
-
-  // ─────────────────────────────────────────────────────────────
-  // 9️⃣ SAVE NOTE (Optimistic UI + Toast)
-  // ─────────────────────────────────────────────────────────────
-  const handleSaveNote = useCallback(async () => {
+  const handleSaveTodo = useCallback(async () => {
     try {
-      const title = postText.title.trim();
-      const content = postText.content.trim();
+      const title = postData.title.trim();
+      const content = postData.content.trim();
 
       if (!title) {
         showError('Oops', 'Title cannot be empty');
         return;
       }
 
-      if (!content) {
-        showError('Oops', 'Content cannot be empty');
-        return;
-      }
-
-      // ✅ OPTIMISTIC UI: Show loading immediately
       setIsSaving(true);
-      console.log('💾 Saving note...');
+      console.log('💾 Saving todo...');
 
-      // Fire-and-forget: Don't wait for response
       requestAnimationFrame(async () => {
         try {
-          // ✅ CALL saveNote: Handles both create AND update
-          // Pass noteData?.id if editing, undefined if creating
-          const result = await saveNote(title, content, mode === 'edit' ? noteData?.id : undefined);
+          const now = new Date().getTime();
+          const todoId = todoData?.id ?? '';
+          const result = await saveTodo({
+            id: todoId,
+            title: title,
+            date: postData.date ?? new Date(),
+            intensity: postData.intensity,
+            status: postData.status,
+            content: content,
+            createdAt: todoData?.createdAt ?? now,
+            updatedAt: now,
+          });
 
           if (result) {
-            console.log('✅ Note saved:', result.id);
-
-            // Clear form (if creating)
+            router.push('/');
             if (mode === 'create') {
-              setTimeout(() => setPostText({ title: '', content: '' }), 300);
-              setTimeout(() => (initialStateRef.current = { title: '', content: '' }), 300);
-
-              setTitleHeight(60);
-              setContentHeight(200);
-            } else {
-              // If editing, update initialState to current state (no more changes)
-              initialStateRef.current = { title, content };
+              setTimeout(
+                () =>
+                  setPostData({
+                    title: '',
+                    content: '',
+                    date: new Date(),
+                    status: false,
+                    intensity: 'High Priority',
+                  }),
+                500
+              );
+              setTimeout(
+                () =>
+                  (initialStateRef.current = {
+                    title: '',
+                    date: new Date(),
+                    content: '',
+                    status: false,
+                    intensity: 'High Priority',
+                  }),
+                500
+              );
             }
 
-            // Show success
-
-            // Navigate back after short delay
-            setTimeout(() => router.back(), 500);
-            success('Saved!', mode === 'edit' ? 'Note updated' : 'Your note has been saved');
+            success('Saved!', mode === 'edit' ? 'Todo updated' : 'Your todo has been saved');
           }
         } catch (error) {
           console.error('❌ Save error:', error);
-          showError('Failed', 'Could not save note. Try again.');
+          showError('Failed', 'Could not save todo. Try again.');
         } finally {
           setIsSaving(false);
         }
@@ -304,276 +123,217 @@ export default function PostBlock({ mode = 'create', noteData }: PostBlockProps)
       showError('Error', 'Something went wrong');
       setIsSaving(false);
     }
-  }, [postText, saveNote, success, showError, mode, noteData?.id]);
+  }, [postData, saveTodo, success, showError, mode, todoData?.id]);
 
-  // ─────────────────────────────────────────────────────────────
-  // 🔟 RESET NOTE (Clear all content or revert changes)
-  // ─────────────────────────────────────────────────────────────
-  const handleResetNote = useCallback(() => {
-    if (mode === 'edit') {
-      // ✅ EDIT MODE: Revert to original note data
-      setPostText({
-        title: noteData?.title ?? '',
-        content: noteData?.content ?? '',
-      });
-      success('Reverted', 'Changes discarded');
-    } else {
-      // ✅ CREATE MODE: Clear all content
-      setPostText({ title: '', content: '' });
-      initialStateRef.current = { title: '', content: '' };
-      setTitleHeight(60);
-      setContentHeight(200);
+  const insets = useSafeAreaInsets();
 
-      // Refocus title
-      contentInputRef.current?.blur();
-      setTimeout(() => titleInputRef.current?.focus(), 100);
+  const keyboard = useAnimatedKeyboard();
 
-      success('Reset', 'Note cleared');
-    }
-    console.log('🔄 Note reset');
-  }, [mode, noteData, success]);
+  const bottomWhenClosed = insets.bottom > 0 ? insets.bottom : 12;
 
-  // ─────────────────────────────────────────────────────────────
-  // 1️⃣1️⃣ DELETE NOTE
-  // ─────────────────────────────────────────────────────────────
-  const handleConfirmDelete = useCallback(async () => {
-    if (mode === 'edit' && noteData?.id) {
-      // ✅ EDIT MODE: Delete the existing note
-      setShowDeleteDialog(false);
-      setIsSaving(true);
+  const bottomWhenOpen = 8;
 
-      try {
-        const success_delete = await deleteNote(noteData.id);
-        if (success_delete) {
-          console.log('✅ Note deleted:', noteData.id);
-          success('Deleted', 'Note has been deleted');
-          // Navigate back
-          setTimeout(() => router.back(), 500);
-        }
-      } catch (error) {
-        console.error('❌ Delete error:', error);
-        showError('Error', 'Failed to delete note');
-      } finally {
-        setIsSaving(false);
-      }
-    } else {
-      // ✅ CREATE MODE: Just clear the form and go back
-      setShowDeleteDialog(false);
-      setPostText({ title: '', content: '' });
-      router.back();
-      success('Cleared', 'Note cleared');
-    }
-  }, [mode, noteData, success, showError]);
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    const isKeyboardOpen = keyboard.height.value > 0;
+    return {
+      bottom: isKeyboardOpen ? keyboard.height.value + bottomWhenOpen : bottomWhenClosed,
+    };
+  });
 
-  // ─────────────────────────────────────────────────────────────
-  // 1️⃣2️⃣ DISCARD CHANGES
-  // ─────────────────────────────────────────────────────────────
-  const handleDiscard = useCallback(() => {
-    if (!hasChanges) {
-      router.back();
-      return;
-    }
-    setShowDiscardDialog(true);
-  }, [hasChanges]);
+  const handleTitleChange = useCallback((text: string) => {
+    const cleanedText = text.replace(/\n/g, '');
+    setPostData((prev) => ({ ...prev, title: cleanedText }));
+    console.log('📝 Title:', cleanedText.substring(0, 20) || '(empty)');
+  }, []);
+  const handleContentChange = useCallback((text: string) => {
+    setPostData((prev) => ({ ...prev, content: text }));
+    console.log('📝 Content updated');
+  }, []);
+  function onLabelPress(label: string) {
+    return () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setPostData((prev) => ({ ...prev, intensity: label }));
+    };
+  }
 
-  const handleConfirmDiscard = useCallback(() => {
-    setShowDiscardDialog(false);
-    setPostText({ title: '', content: '' });
-    router.back();
-    console.log('↩️ Discarded');
+  function onValueChange(value: string) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPostData((prev) => ({ ...prev, intensity: value }));
+  }
+
+  const maxBirthDate = new Date();
+  maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 18);
+
+  const minTodoDate = new Date();
+  minTodoDate.setHours(0, 0, 0, 0);
+
+  const formatDateDisplay = useCallback((date: Date | undefined) => {
+    if (!date) return 'Select a date';
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    };
+    return date.toLocaleDateString('en-US', options);
   }, []);
 
-  // ─────────────────────────────────────────────────────────────
-  // 1️⃣3️⃣ DROPDOWN MENU COMPONENT
-  // ─────────────────────────────────────────────────────────────
-  const MenuButton = useMemo(
-    () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-10" disabled={isSaving}>
-            <Icon as={MoreHorizontalIcon} className="size-5" />
-          </Button>
-        </DropdownMenuTrigger>
+  const handleDateChange = useCallback(
+    (event: any, date?: Date) => {
+      if (Platform.OS === 'android') {
+        setShowDatePicker(false);
+      }
 
-        <DropdownMenuContent align="end" className="min-w-[160px]">
-          {/* SAVE OPTION */}
-          <DropdownMenuItem
-            onPress={handleSaveNote}
-            disabled={isSaving || !hasChanges}
-            className="gap-2">
-            <Text className={!hasChanges ? 'opacity-50' : ''}>Save</Text>
-          </DropdownMenuItem>
+      if (date) {
+        if (date < minTodoDate) {
+          showError('Invalid Date', 'Cannot select past dates');
+          return;
+        }
 
-          {/* RESET OPTION */}
-          <DropdownMenuItem onPress={handleResetNote} disabled={!hasChanges} className="gap-2">
-            <Text className={!hasChanges ? 'opacity-50' : ''}>Reset</Text>
-          </DropdownMenuItem>
-
-          {/* DELETE OPTION */}
-          <DropdownMenuItem onPress={() => setShowDeleteDialog(true)} className="gap-2">
-            <Text className="text-destructive">Delete</Text>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-    [isSaving, hasChanges, handleSaveNote, handleResetNote]
-  );
-
-  // ─────────────────────────────────────────────────────────────
-  // 1️⃣4️⃣ SCREEN OPTIONS (Navigation header)
-  // ─────────────────────────────────────────────────────────────
-  const screenOptions = useMemo(
-    (): ScreenOptionsParams => ({
-      title: displayTitle,
-      leftIcon: ChevronLeftIcon,
-      leftAction: handleDiscard,
-      RigthComponent: MenuButton,
-    }),
-    [displayTitle, handleDiscard, MenuButton]
-  );
-
-  // ─────────────────────────────────────────────────────────────
-  // 1️⃣5️⃣ MEMOIZED TEXTAREA SECTIONS (Prevent unnecessary re-renders!)
-  // ─────────────────────────────────────────────────────────────
-  const TitleSection = useMemo(
-    () => (
-      <View className="px-4">
-        <Textarea
-          ref={titleInputRef}
-          value={postText.title}
-          onChangeText={handleTitleChange}
-          onKeyPress={handleTitleKeyPress}
-          onContentSizeChange={handleTitleHeightChange}
-          placeholder="Title"
-          multiline={true}
-          maxLength={100}
-          editable={!isSaving}
-          scrollEnabled={false}
-          style={{ height: titleHeight, minHeight: 60 }}
-          className="border-0 border-none bg-transparent p-0 font-poppins_bold text-4xl placeholder:text-muted-foreground/50"
-        />
-      </View>
-    ),
-    [
-      postText.title,
-      titleHeight,
-      isSaving,
-      handleTitleChange,
-      handleTitleKeyPress,
-      handleTitleHeightChange,
-    ]
-  );
-
-  const ContentSection = useMemo(
-    () => (
-      <View className="flex flex-1 px-4">
-        <Textarea
-          ref={contentInputRef}
-          value={postText.content}
-          onChangeText={handleContentChange}
-          onFocus={handleContentFocus}
-          onContentSizeChange={handleContentHeightChange}
-          placeholder="Write your thoughts..."
-          multiline={true}
-          editable={!isSaving}
-          scrollEnabled={false}
-          style={{ height: contentHeight, minHeight: 200 }}
-          className="flex flex-1 border-0 border-none bg-transparent p-0 font-poppins_regular text-base placeholder:text-muted-foreground/50"
-        />
-      </View>
-    ),
-    [
-      postText.content,
-      contentHeight,
-      isSaving,
-      handleContentChange,
-      handleContentFocus,
-      handleContentHeightChange,
-    ]
+        setSelectedDate(date);
+        setPostData((prev) => ({ ...prev, date: date }));
+        console.log('📅 Date selected:', date.toLocaleDateString());
+      }
+    },
+    [minTodoDate, showError]
   );
 
   return (
     <>
-      <Stack.Screen options={SCREEN_OPTIONS(screenOptions)} />
-
-      {/* ✅ KEYBOARD AVOIDANCE - Higher offset to keep text visible! */}
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 220 : 100}>
-        <Wrapper edges={['left', 'right']} className="relative flex flex-1 flex-col bg-background">
-          {/* ✅ SCROLLABLE CONTENT AREA */}
-          <ScrollView
-            ref={scrollViewRef}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 11 }}
-            scrollEnabled={true}
-            className="flex-1">
-            {/* SPACING FROM TOP */}
-            <View className="h-5" />
-
-            {/* TITLE INPUT SECTION */}
-            {TitleSection}
-
-            {/* SPACING BETWEEN TITLE AND CONTENT */}
-            <View className="h-6" />
-
-            {/* CONTENT INPUT SECTION */}
-            {ContentSection}
-
-            {/* SPACING BEFORE FOOTER */}
-            <View className="h-3" />
-          </ScrollView>
-
-          {/* ✅ STICKY FOOTER - Character counter stays at bottom, scrolls content above it */}
-          <View className="border-t border-border/30 bg-background px-4 py-6">
-            <View className="flex-row justify-between gap-2">
-              <Text className="text-xs text-muted-foreground/60">
-                {postText.content.length} chars
+      <Stack.Screen
+        options={SCREEN_OPTIONS({
+          leftIcon: ChevronLeftIcon,
+          title: ' ',
+          rightIcon: MoreHorizontalIcon,
+        })}
+      />
+      <Wrapper
+        className="items-start justify-start gap-10 pb-36 pt-9"
+        edges={['bottom', 'left', 'right']}>
+        {mode == 'create' && (
+          <View className="gap-6 pr-7">
+            <Text variant={'small'} className="tracking-widest">
+              TASK CREATION
+            </Text>
+            <View>
+              <Text variant={'h2'} className="pb-6 text-left text-4xl font-thin uppercase">
+                Define your next move.
               </Text>
-              <Text className="text-xs text-muted-foreground/60">{postText.title.length}/100</Text>
             </View>
           </View>
-        </Wrapper>
-      </KeyboardAvoidingView>
+        )}
+        <View className="w-full gap-14">
+          <View className="gap-5">
+            <Label
+              nativeID="title-todo"
+              className="font-poppins_thin tracking-widest"
+              htmlFor="title-todo">
+              THE OBJECTIVE
+            </Label>
+            <Input
+              aria-labelledby="title-todo"
+              id="title-todo"
+              value={postData.title}
+              onChangeText={handleTitleChange}
+              placeholder="What needs to be done?"
+              className="w-full"
+            />
+          </View>
+          <View className="gap-5">
+            <Label
+              nativeID="content-todo"
+              className="font-poppins_thin tracking-widest"
+              htmlFor="content-todo">
+              CONTEXT & DETAILS
+            </Label>
+            <Textarea
+              aria-labelledby="content-todo"
+              id="content-todo"
+              value={postData.content}
+              onChangeText={handleContentChange}
+              placeholder="Add any specific requirements or links..."
+              className="w-full placeholder:text-muted-foreground/50"
+            />
+          </View>
+          <View className="gap-9">
+            <Text variant={'small'} className="font-poppins_thin tracking-widest">
+              TASK INTENSITY
+            </Text>
 
-      {/* ✅ DISCARD CONFIRMATION */}
-      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Save changes?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have unsaved changes. Save before leaving?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onPress={handleConfirmDiscard}>
-              <Text>Discard</Text>
-            </AlertDialogCancel>
-            <AlertDialogAction variant={'default'} onPress={handleSaveNote}>
-              <Text>Save</Text>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <RadioGroup
+              value={postData.intensity}
+              onValueChange={onValueChange}
+              className="flex-row items-center justify-between gap-4">
+              <View className="flex items-center gap-4">
+                <RadioGroupItem value="High Priority" id="r1" />
+                <Label htmlFor="r1" onPress={onLabelPress('High Priority')}>
+                  High Priorit
+                </Label>
+              </View>
+              <View className="flex items-center gap-4">
+                <RadioGroupItem value="Steady Pace" id="r2" />
+                <Label htmlFor="r2" onPress={onLabelPress('Steady Pace')}>
+                  Steady Pace
+                </Label>
+              </View>
+              <View className="flex items-center gap-4">
+                <RadioGroupItem value="Low Focus" id="r3" />
+                <Label htmlFor="r3" onPress={onLabelPress('Low Focus')}>
+                  Low Focus
+                </Label>
+              </View>
+            </RadioGroup>
+          </View>
+          <View className="gap-5">
+            <Label className="font-poppins_thin tracking-widest">SCHEDULE DATE</Label>
+            <Button
+              size={'lg'}
+              onPress={() => setShowDatePicker(true)}
+              variant="outline"
+              className="flex-row items-center justify-between rounded-2xl border border-border px-4 py-3">
+              <View className="flex-row items-center gap-3">
+                <Icon as={Calendar} size={20} className="text-muted-foreground" />
+                <Text
+                  variant={'muted'}
+                  className={cn(
+                    'text-sm',
+                    selectedDate ? 'font-medium text-foreground' : 'text-muted-foreground'
+                  )}>
+                  {formatDateDisplay(selectedDate)}
+                </Text>
+              </View>
+            </Button>
+          </View>
 
-      {/* ✅ DELETE CONFIRMATION */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete note?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Text>Cancel</Text>
-            </AlertDialogCancel>
-            <AlertDialogAction variant={'destructive'} onPress={handleConfirmDelete}>
-              <Text>Delete</Text>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          {/* Native Date Picker Modal */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              minimumDate={minTodoDate}
+              onChange={handleDateChange}
+            />
+          )}
+        </View>
+      </Wrapper>
+      <Animated.View
+        className="absolute left-0 right-0 bg-background px-7"
+        style={animatedButtonStyle}>
+        <Button
+          onPress={handleSaveTodo}
+          disabled={isSaving || postData.title.trim().length == 0}
+          variant="default"
+          size={'lg'}>
+          <Text className="font-poppins_semibold text-lg text-primary-foreground">
+            {mode == 'edit' ? 'Update' : 'Create'}
+          </Text>
+          {isSaving && <Spinner className="text-primary-foreground" />}
+        </Button>
+      </Animated.View>
+
+      {/* <Animated.View
+        className="absolute left-0 right-0 px-8"
+        style={animatedButtonStyle}></Animated.View> */}
     </>
   );
 }

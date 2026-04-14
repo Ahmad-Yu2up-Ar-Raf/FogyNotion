@@ -51,7 +51,7 @@ function DropdownMenuSubTrigger({
       )}>
       <DropdownMenuPrimitive.SubTrigger
         className={cn(
-          'group flex flex-row items-center rounded-sm px-2 py-2 active:bg-accent sm:py-1.5',
+          'group flex flex-row items-center rounded-2xl px-2 py-2 active:bg-accent sm:py-1.5',
           Platform.select({
             web: 'cursor-default outline-none focus:bg-accent focus:text-accent-foreground [&_svg]:pointer-events-none',
           }),
@@ -75,7 +75,7 @@ function DropdownMenuSubContent({
     <NativeOnlyAnimatedView entering={FadeIn}>
       <DropdownMenuPrimitive.SubContent
         className={cn(
-          'overflow-hidden rounded-md border border-border bg-popover p-1 shadow-lg shadow-black/5',
+          'overflow-hidden rounded-2xl border border-border bg-popover p-1 shadow-lg shadow-black/5',
           Platform.select({
             web: 'origin-(--radix-context-menu-content-transform-origin) z-50 min-w-[8rem] animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
           }),
@@ -119,7 +119,7 @@ function DropdownMenuContent({
             <TextClassContext.Provider value="text-popover-foreground">
               <DropdownMenuPrimitive.Content
                 className={cn(
-                  'min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 shadow-lg shadow-black/5',
+                  'min-w-[8rem] overflow-hidden rounded-2xl border border-border bg-popover p-1 shadow-lg shadow-black/5',
                   Platform.select({
                     web: cn(
                       'max-h-(--radix-context-menu-content-available-height) origin-(--radix-context-menu-content-transform-origin) z-50 cursor-default animate-in fade-in-0 zoom-in-95',
@@ -158,7 +158,7 @@ function DropdownMenuItem({
       )}>
       <DropdownMenuPrimitive.Item
         className={cn(
-          'group relative flex flex-row items-center gap-2 rounded-sm px-2 py-2 active:bg-accent sm:py-1.5',
+          'group relative flex flex-row items-center gap-2 rounded-2xl px-2 py-2 active:bg-accent sm:py-1.5',
           Platform.select({
             web: cn(
               'cursor-default outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none',
@@ -188,7 +188,7 @@ function DropdownMenuCheckboxItem({
     <TextClassContext.Provider value="text-sm text-popover-foreground select-none group-active:text-accent-foreground">
       <DropdownMenuPrimitive.CheckboxItem
         className={cn(
-          'group relative flex flex-row items-center gap-2 rounded-sm py-2 pl-8 pr-2 active:bg-accent sm:py-1.5',
+          'group relative flex flex-row items-center gap-2 rounded-2xl py-2 pl-8 pr-2 active:bg-accent sm:py-1.5',
           Platform.select({
             web: 'cursor-default outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none',
           }),
@@ -225,7 +225,7 @@ function DropdownMenuRadioItem({
     <TextClassContext.Provider value="text-sm text-popover-foreground select-none group-active:text-accent-foreground">
       <DropdownMenuPrimitive.RadioItem
         className={cn(
-          'group relative flex flex-row items-center gap-2 rounded-sm py-2 pl-8 pr-2 active:bg-accent sm:py-1.5',
+          'group relative flex flex-row items-center gap-2 rounded-2xl py-2 pl-8 pr-2 active:bg-accent sm:py-1.5',
           Platform.select({
             web: 'cursor-default outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none',
           }),

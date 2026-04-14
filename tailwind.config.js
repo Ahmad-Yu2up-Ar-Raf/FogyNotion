@@ -66,6 +66,7 @@ module.exports = {
       },
     },
     fontFamily: {
+      poppins_thin: ['Poppins_300Light', 'sans-serif'],
       poppins_regular: ['Poppins_400Regular', 'sans-serif'],
       poppins_medium: ['Poppins_500Medium', 'sans-serif'],
       poppins_semibold: ['Poppins_600SemiBold', 'sans-serif'],

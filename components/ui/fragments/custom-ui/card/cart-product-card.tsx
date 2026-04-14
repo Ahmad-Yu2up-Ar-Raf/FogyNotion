@@ -76,7 +76,7 @@ export function CartProductCard({ className, cartItem, ...props }: componentProp
                 // onPress={() => setQuantity(quantity - 1)}
                 variant={'outline'}
                 size="icon"
-                className="size-fit rounded-md p-1">
+                className="size-fit rounded-2xl p-1">
                 <Icon as={MinusIcon} className="size-5" />
               </Button>
               <Text className="font-source_serif_semibold text-lg">{quantity}</Text>

@@ -69,10 +69,10 @@ export default function TabsLayout() {
         />
 
         <Tabs.Screen
-          name="archive"
+          name="project"
           options={{
             headerShown: false,
-            title: 'Archive',
+            title: 'Project',
             tabBarShowLabel: false,
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => {
@@ -127,11 +127,12 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="profile"
           options={{
+            headerShown: false,
             title: 'Profile',
             tabBarShowLabel: false,
             tabBarButton: HapticTab,
             tabBarIcon: ({ color, focused }) => (
-              <UserAvatar className={cn('size-7', focused && 'border-2 size-8 border-primary')} />
+              <UserAvatar className={cn('size-7', focused && 'size-8 border-2 border-primary')} />
             ),
           }}
         />
