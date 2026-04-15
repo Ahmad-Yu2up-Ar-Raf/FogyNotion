@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 
 function RadioGroup({
   className,
+
   ...props
 }: RadioGroupPrimitive.RootProps & React.RefAttributes<RadioGroupPrimitive.RootRef>) {
   return <RadioGroupPrimitive.Root className={cn('gap-3', className)} {...props} />;
@@ -11,8 +12,11 @@ function RadioGroup({
 
 function RadioGroupItem({
   className,
+  indicatorClassName,
+
   ...props
-}: RadioGroupPrimitive.ItemProps & React.RefAttributes<RadioGroupPrimitive.ItemRef>) {
+}: RadioGroupPrimitive.ItemProps &
+  React.RefAttributes<RadioGroupPrimitive.ItemRef> & { indicatorClassName?: string }) {
   return (
     <RadioGroupPrimitive.Item
       className={cn(
@@ -24,7 +28,10 @@ function RadioGroupItem({
         className
       )}
       {...props}>
-      <RadioGroupPrimitive.Indicator className="size-2 rounded-2xl bg-primary" />
+      <RadioGroupPrimitive.Indicator
+        id="indicator"
+        className={cn('size-2 rounded-2xl bg-primary', indicatorClassName)}
+      />
     </RadioGroupPrimitive.Item>
   );
 }

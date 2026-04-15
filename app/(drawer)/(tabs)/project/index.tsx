@@ -8,7 +8,7 @@ import * as React from 'react';
 export default function Screen() {
   return (
     <>
-      <Stack.Screen options={SCREEN_OPTIONS({ title: 'To DO' })} />
+      <Stack.Screen options={SCREEN_OPTIONS({ title: 'To Do' })} />
       <ProjectBlock />
     </>
   );

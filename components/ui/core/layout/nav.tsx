@@ -19,6 +19,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../../fragments/shadcn-ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ScreenOptionsParams {
@@ -28,12 +31,21 @@ export interface ScreenOptionsParams {
   leftAction?: () => void;
   rightIcon?: LucideIcon;
   id?: number;
-  RigthComponent?: React.ReactNode; // opsional, untuk custom right component (misal dropdown menu)
+  RigthComponent?: React.ReactNode | undefined;
   rightAction?: () => void;
+  rigthIconClassName?: string;
   children?: React.ReactNode;
-  surahSetelahnya?: { id: number; namaLatin: string } | null; // untuk navigasi next/prev di Surah detail
+  surahSetelahnya?: { id: number; namaLatin: string } | null;
   surahSebelumnya?: { id: number; namaLatin: string } | null;
-  isFullPlaying?: boolean; // untuk kondisi play/pause di dropdown menu
+  isFullPlaying?: boolean;
+  /**
+   * ✅ NEW: Shared animated value untuk scroll position
+   * Trigger animasi title berdasarkan scroll height
+   * Dari useScrollAnimation hook
+   */
+  scrollAnimatedPosition?: SharedValue<number>;
+  /** ✅ NEW: Custom scroll trigger point untuk show title (default: 100px) */
+  scrollTriggerPoint?: number;
 }
 
 // ─── HeaderComponent ──────────────────────────────────────────────────────────
@@ -51,7 +63,10 @@ function HeaderComponent({
   children,
   rightIcon: RightIcon,
   rightAction,
+  rigthIconClassName,
   id,
+  scrollAnimatedPosition,
+  scrollTriggerPoint = 100,
 }: HeaderComponentProps) {
   // ✅ Hook aman di sini karena ini adalah proper React component
   const insets = useSafeAreaInsets();
@@ -67,6 +82,30 @@ function HeaderComponent({
   const bgColor = transparent ? 'transparent' : THEME[currentTheme].background;
 
   const foregroundColor = THEME[currentTheme].foreground;
+
+  // ✅ Animated style untuk title — smooth scroll trigger
+  // Interpolate antara 0 (hidden) dan 100 (visible)
+  const animatedTitleStyle = useAnimatedStyle(() => {
+    if (!scrollAnimatedPosition) {
+      return { opacity: title ? 1 : 0 };
+    }
+
+    // Interpolate scroll position ke opacity
+    // Range: 0 (hide) sampai scrollTriggerPoint (fully visible)
+    const progress = Math.min(scrollAnimatedPosition.value / scrollTriggerPoint, 1);
+    const clampedProgress = Math.max(0, progress); // Clamp antara 0-1
+
+    return {
+      opacity: clampedProgress,
+      transform: [
+        {
+          // Slide dari bawah (translateY 10) ke normal (0)
+          translateY: (1 - clampedProgress) * 10,
+        },
+      ],
+    };
+  }, [scrollAnimatedPosition, scrollTriggerPoint, title]);
+
   return (
     <>
       <View
@@ -87,14 +126,16 @@ function HeaderComponent({
           )}
         </View>
 
-        {/* Title */}
-        {title ? (
-          <Text
-            variant="h4"
-            className="line-clamp-1 text-center font-poppins_medium text-xl tracking-tighter"
-            numberOfLines={1}>
-            {title}
-          </Text>
+        {/* Title with scroll animation */}
+        {title || scrollAnimatedPosition ? (
+          <Animated.View style={animatedTitleStyle}>
+            <Text
+              variant="h4"
+              className="line-clamp-1 text-center font-poppins_medium text-xl tracking-tighter"
+              numberOfLines={1}>
+              {title}
+            </Text>
+          </Animated.View>
         ) : (
           <View className="items-center justify-center gap-7 text-center">
             {/* <Text
@@ -125,31 +166,19 @@ function HeaderComponent({
               variant={'ghost'}
               onPress={rightAction ?? handleLeave}
               size="icon"
-              className="size-12 rounded-full">
-              <Icon as={RightIcon} className="size-6" />
+              className={cn(`size-10 rounded-full`, rigthIconClassName)}>
+              <Icon as={RightIcon} className="size-5" />
             </Button>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-10">
-                  <Icon as={PlusIcon} className="size-5" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="min-w-[160px]">
-                <DropdownMenuItem
-                  onPress={() => {
-                    router.push('/(drawer)/post');
-                  }}
-                  className="gap-2">
-                  <Text>To DO</Text>
-                </DropdownMenuItem>
-
-                {/* RESET OPTION */}
-
-                {/* DELETE OPTION */}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              onPress={() => {
+                router.push('/(drawer)/post');
+              }}
+              variant="ghost"
+              size="icon"
+              className={cn('size-10', rigthIconClassName)}>
+              <Icon as={PlusIcon} className="size-5" />
+            </Button>
           )}
         </View>
       </View>
@@ -173,7 +202,8 @@ export const SCREEN_OPTIONS = ({
   RigthComponent,
   rightAction,
   children,
-  // backward compat
+  scrollAnimatedPosition,
+  scrollTriggerPoint,
 }: ScreenOptionsParams) => ({
   headerShown: true,
 
@@ -187,6 +217,8 @@ export const SCREEN_OPTIONS = ({
       RigthComponent={RigthComponent}
       children={children}
       rightAction={rightAction}
+      scrollAnimatedPosition={scrollAnimatedPosition}
+      scrollTriggerPoint={scrollTriggerPoint}
     />
   ),
 });

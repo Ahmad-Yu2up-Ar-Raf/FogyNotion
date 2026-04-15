@@ -1,17 +1,3 @@
-/**
- * ✅ NOTE CARD COMPONENT
- *
- * Minimalist elegant card for displaying user todos.
- * Reuses shadcn-ui components (Card, Button, DropdownMenu, Text)
- *
- * Features:
- * - Title + short description (truncated)
- * - Created/Updated date display
- * - Tap to view/edit detail
- * - Dropdown menu: Edit, Delete
- * - Real-time updates via AsyncStorage
- */
-
 import React, { useCallback, useMemo } from 'react';
 import {
   Card,
@@ -36,6 +22,7 @@ import {
 } from '../../shadcn-ui/dropdown-menu';
 import { deleteTodo, Todos, updateStatusTodo } from '@/lib/storage/todos-storage';
 import { useToast } from '../../shadcn-ui/toast';
+import * as Haptics from 'expo-haptics';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,10 +34,11 @@ import {
   AlertDialogTitle,
 } from '../../shadcn-ui/alert-dialog';
 import { queryClient } from '@/components/provider/provider';
-import { formatDistanceToNow } from 'date-fns';
+import { DateArg, intervalToDuration, format, compareAsc } from 'date-fns';
 
 import { Checkbox } from '../../shadcn-ui/checkbox';
-import { useTodos } from '@/hooks/useTodo';
+import { Badge } from '../../shadcn-ui/badge';
+
 type TodoCardProps = ViewProps & {
   className?: string;
   todo: Todos;
@@ -82,7 +70,7 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
   const handleUpdateStatus = useCallback(async () => {
     try {
       console.log('💾 Saving todo...');
-
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await updateStatusTodo({
         id: todo.id,
         done: !todo.status,
@@ -114,12 +102,15 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
   }, [todo.id, onDelete, success, showError]);
   const DateT =
     todo && todo.date && typeof todo.date === 'string' ? new Date(todo.date) : todo.date;
-  const formattedDate = formatDistanceToNow(DateT as string | number | Date);
+  const end = DateT; // Target date
+  const formattedDate = format(`${DateT}`, 'MM/dd/yyyy');
+
   return (
     <>
       <Card
         className={cn(
           'h-fit w-full items-center rounded-xl px-6 py-4 transition-all duration-200',
+          todo.status && 'bg-muted/50',
           className
         )}
         {...props}>
@@ -138,20 +129,30 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
           </View>
           <CardContent className="w-full flex-1 gap-2 rounded-none p-0 py-0">
             <CardHeader className="relative w-full flex-row items-start justify-between rounded-none p-0">
-              <View className="gap-2">
-                {/* <Badge>
-                <Text className="text-xs">{todo.intensity}</Text>
-              </Badge> */}
+              <View className="item w-fit flex-row items-center gap-3">
                 <CardTitle
                   className={cn(
-                    'font-poppins_thin line-clamp-1 flex-1 text-lg text-foreground',
+                    'line-clamp-1 w-fit font-poppins_thin text-lg text-foreground',
                     todo.status && 'text-muted-foreground line-through'
                   )}>
                   {todo.title || 'Untitled'}
                 </CardTitle>
+                <Text variant={'muted'} className="opacity-55">
+                  •
+                </Text>
+                <Badge
+                  className={cn(
+                    todo.intensity == 'medium' && 'bg-green-500',
+                    todo.intensity == 'low' && 'bg-amber-500',
+                    todo.intensity == 'high' && 'bg-destructive',
+
+                    todo.status && 'opacity-65'
+                  )}>
+                  <Text className={cn(todo.status && 'text-muted')}>{todo.intensity}</Text>
+                </Badge>
               </View>
 
-              <DropdownMenu>
+              <DropdownMenu className="">
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -161,7 +162,7 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
                     onPress={(e) => {
                       e.preventDefault();
                     }}>
-                    <Icon as={MoreHorizontalIcon} className="size-4 text-muted-foreground" />
+                    <Icon as={MoreHorizontalIcon} className="size-4 flex-1 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
 
@@ -183,8 +184,14 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
             </CardDescription>
             <CardFooter className="w-full gap-2 rounded-none p-0">
               <View className="flex-row items-center gap-2">
-                <Icon as={Clock} className="text-muted-foreground/60" />
-                <Text className="text-xs text-muted-foreground/60">{formattedDate}</Text>
+                {/* <Icon as={Clock} className="text-muted-foreground/60" /> */}
+                <Text
+                  className={cn(
+                    'text-xs text-muted-foreground/60',
+                    todo.status && 'text-muted-foreground/40'
+                  )}>
+                  Deadline :{formattedDate}
+                </Text>
               </View>
             </CardFooter>
           </CardContent>

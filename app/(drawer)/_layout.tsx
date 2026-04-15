@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/fragments/shadcn-ui/button';
 import {
   FolderClosed,
- 
   FolderOpenIcon,
   LogOutIcon,
   LucideIcon,

@@ -1,9 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Wrapper } from '../layout/wrapper';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../fragments/shadcn-ui/alert-dialog';
 import { Text } from '../../fragments/shadcn-ui/text';
 import { View, Platform } from 'react-native';
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../fragments/shadcn-ui/dropdown-menu';
 import { useToast } from '../../fragments/shadcn-ui/toast';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,12 +32,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/fragments/shadcn-ui/
 import { Input } from '../../fragments/shadcn-ui/input';
 import { Label } from '../../fragments/shadcn-ui/label';
 import { useTodos } from '@/hooks/useTodo';
-import { Todo, Todos } from '@/lib/storage/todos-storage';
+import { deleteTodo, Todo, Todos } from '@/lib/storage/todos-storage';
 import { Textarea } from '../../fragments/shadcn-ui/textarea';
 import * as Haptics from 'expo-haptics';
 import { Icon } from '../../fragments/shadcn-ui/icon';
 import { cn } from '@/lib/utils';
 import { Spinner } from '../../fragments/shadcn-ui/spinner';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { Separator } from '../../fragments/shadcn-ui/separator';
 
 export interface PostBlockProps {
   mode?: 'create' | 'edit';
@@ -31,29 +47,52 @@ export interface PostBlockProps {
 }
 export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps) {
   const { saveTodo } = useTodos();
+
+  // ✅ Scroll animation hook for header trigger
+  // Only active when mode is 'create' to show "New Task" title on scroll
+  const { scrollAnimatedPosition, scrollHandler } = useScrollAnimation({
+    showTriggerPoint: 80,
+    hideTriggerPoint: 0,
+  });
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const dateFromTodo = todoData?.date;
     if (!dateFromTodo) return new Date();
     if (dateFromTodo instanceof Date) return dateFromTodo;
     return new Date(dateFromTodo); // Convert string to Date if needed
   });
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [postData, setPostData] = useState<Todo>({
     title: todoData?.title ?? '',
     content: todoData?.content ?? '',
     status: todoData?.status ?? false,
     date: todoData?.date ?? undefined,
-    intensity: todoData?.intensity ?? 'High Priority',
+    intensity: todoData?.intensity ?? 'medium',
   });
   const initialStateRef = useRef<Todo>({
     title: todoData?.title ?? '',
     content: todoData?.content ?? '',
     status: todoData?.status ?? false,
     date: todoData?.date ?? undefined,
-    intensity: todoData?.intensity ?? 'High Priority',
+    intensity: todoData?.intensity ?? 'medium',
   });
   const [isSaving, setIsSaving] = useState(false);
   const { success, error: showError } = useToast();
+  const hasChanges = useMemo(
+    () =>
+      postData.title.trim() !== initialStateRef.current.title.trim() ||
+      postData.content.trim() !== initialStateRef.current.content.trim(),
+    [postData.title, postData.content]
+  );
+
+  const handleDiscard = useCallback(() => {
+    if (!hasChanges) {
+      router.push('/');
+      return;
+    }
+    setShowDiscardDialog(true);
+  }, [hasChanges]);
   const handleSaveTodo = useCallback(async () => {
     try {
       const title = postData.title.trim();
@@ -92,7 +131,7 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
                     content: '',
                     date: new Date(),
                     status: false,
-                    intensity: 'High Priority',
+                    intensity: 'medium',
                   }),
                 500
               );
@@ -103,7 +142,7 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
                     date: new Date(),
                     content: '',
                     status: false,
-                    intensity: 'High Priority',
+                    intensity: 'medium',
                   }),
                 500
               );
@@ -129,14 +168,12 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
 
   const keyboard = useAnimatedKeyboard();
 
-  const bottomWhenClosed = insets.bottom > 0 ? insets.bottom : 12;
-
-  const bottomWhenOpen = 8;
-
   const animatedButtonStyle = useAnimatedStyle(() => {
-    const isKeyboardOpen = keyboard.height.value > 0;
+    const keyboardHeight = keyboard.height.value;
+    const bottomPadding = insets.bottom > 0 ? insets.bottom : 12;
+
     return {
-      bottom: isKeyboardOpen ? keyboard.height.value + bottomWhenOpen : bottomWhenClosed,
+      bottom: keyboardHeight > 0 ? keyboardHeight + 8 : bottomPadding,
     };
   });
 
@@ -163,9 +200,59 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
 
   const maxBirthDate = new Date();
   maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 18);
+  const handleConfirmDelete = useCallback(async () => {
+    if (mode === 'edit' && todoData?.id) {
+      setShowDeleteDialog(false);
+      setIsSaving(true);
 
+      try {
+        const success_delete = await deleteTodo(todoData.id);
+        if (success_delete) {
+          console.log('✅ Note deleted:', todoData.id);
+          success('Deleted', 'Note has been deleted');
+          // Navigate back
+          setTimeout(() => router.back(), 500);
+        }
+      } catch (error) {
+        console.error('❌ Delete error:', error);
+        showError('Error', 'Failed to delete todo');
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      setShowDeleteDialog(false);
+      setPostData({ title: '', content: '', date: new Date(), status: false, intensity: 'medium' });
+      router.push('/');
+      console.log('↩️ Cleared');
+      success('Cleared', 'Note cleared');
+    }
+  }, [mode, todoData, success, showError]);
   const minTodoDate = new Date();
   minTodoDate.setHours(0, 0, 0, 0);
+  const handleResetNote = useCallback(() => {
+    if (mode === 'edit') {
+      setPostData({
+        title: '',
+        content: '',
+        date: new Date(),
+        status: false,
+        intensity: 'medium',
+      });
+      success('Reverted', 'Changes discarded');
+    } else {
+      setPostData({ title: '', content: '', date: new Date(), status: false, intensity: 'medium' });
+      initialStateRef.current = {
+        title: '',
+        content: '',
+        date: new Date(),
+        status: false,
+        intensity: 'medium',
+      };
+
+      success('Reset', 'Note cleared');
+    }
+    console.log('🔄 Note reset');
+  }, [mode, postData, success]);
 
   const formatDateDisplay = useCallback((date: Date | undefined) => {
     if (!date) return 'Select a date';
@@ -196,32 +283,82 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
     },
     [minTodoDate, showError]
   );
+  const handleConfirmDiscard = useCallback(() => {
+    setShowDiscardDialog(false);
+    setPostData({ title: '', content: '', date: new Date(), status: false, intensity: 'medium' });
+    router.back();
+    console.log('↩️ Discarded');
+  }, []);
+  const MenuButton = useMemo(
+    () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="size-10" disabled={isSaving}>
+            <Icon as={MoreHorizontalIcon} className="size-5" />
+          </Button>
+        </DropdownMenuTrigger>
 
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          <DropdownMenuItem
+            onPress={handleSaveTodo}
+            disabled={isSaving || !hasChanges}
+            className="gap-2">
+            <Text className={!hasChanges ? 'opacity-50' : ''}>Save</Text>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onPress={handleResetNote} disabled={!hasChanges} className="gap-2">
+            <Text className={!hasChanges ? 'opacity-50' : ''}>Reset</Text>
+          </DropdownMenuItem>
+          {mode === 'edit' && (
+            <DropdownMenuItem onPress={() => setShowDeleteDialog(true)} className="gap-2">
+              <Text className="text-destructive">Delete</Text>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+    [isSaving, hasChanges, handleSaveTodo, handleResetNote]
+  );
   return (
     <>
       <Stack.Screen
         options={SCREEN_OPTIONS({
           leftIcon: ChevronLeftIcon,
-          title: ' ',
-          rightIcon: MoreHorizontalIcon,
+          title: mode == 'edit' ? 'Edit' : mode == 'create' ? 'New Task' : ' ',
+          RigthComponent: MenuButton,
+          leftAction: handleDiscard,
+          // ✅ Pass scroll animation for create mode
+          // Title will fade in/slide up as user scrolls
+          ...(mode === 'create' && {
+            scrollAnimatedPosition,
+            scrollTriggerPoint: 80,
+          }),
         })}
       />
       <Wrapper
-        className="items-start justify-start gap-10 pb-36 pt-9"
-        edges={['bottom', 'left', 'right']}>
+        className="items-start justify-start gap-7 pb-56 pt-3"
+        edges={['bottom', 'left', 'right']}
+        // ✅ Pass scroll handler only for create mode
+        // Wrapper akan trigger scroll animation di header
+        animatedScrollHandler={mode === 'create' ? scrollHandler : undefined}>
         {mode == 'create' && (
-          <View className="gap-6 pr-7">
-            <Text variant={'small'} className="tracking-widest">
-              TASK CREATION
-            </Text>
-            <View>
-              <Text variant={'h2'} className="pb-6 text-left text-4xl font-thin uppercase">
-                Define your next move.
+          <>
+            <View className="gap-6 pr-16">
+              <Text variant={'small'} className="tracking-widest">
+                TASK CREATION
               </Text>
+              <View>
+                <Text
+                  variant={'h2'}
+                  className="m-0 border-0 p-0 text-left font-poppins_thin text-5xl uppercase">
+                  Define your next move.
+                </Text>
+              </View>
             </View>
-          </View>
+            <Separator />
+          </>
         )}
-        <View className="w-full gap-14">
+        <View className="mt-6 w-full gap-14">
           <View className="gap-5">
             <Label
               nativeID="title-todo"
@@ -258,33 +395,58 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
             <Text variant={'small'} className="font-poppins_thin tracking-widest">
               TASK INTENSITY
             </Text>
-
             <RadioGroup
               value={postData.intensity}
               onValueChange={onValueChange}
-              className="flex-row items-center justify-between gap-4">
-              <View className="flex items-center gap-4">
-                <RadioGroupItem value="High Priority" id="r1" />
-                <Label htmlFor="r1" onPress={onLabelPress('High Priority')}>
-                  High Priorit
+              className="flex-row items-center justify-start gap-10">
+              <View className="flex-row items-center gap-2">
+                <RadioGroupItem
+                  indicatorClassName="bg-destructive"
+                  value="high"
+                  id="high"
+                  className="cursor-pointer border-destructive text-destructive"
+                />
+                <Label
+                  onPress={onLabelPress('high')}
+                  htmlFor="high"
+                  className="cursor-pointer pb-0.5 font-medium leading-none text-destructive">
+                  High
                 </Label>
               </View>
-              <View className="flex items-center gap-4">
-                <RadioGroupItem value="Steady Pace" id="r2" />
-                <Label htmlFor="r2" onPress={onLabelPress('Steady Pace')}>
-                  Steady Pace
+
+              <View className="flex-row items-center gap-2">
+                <RadioGroupItem
+                  indicatorClassName="bg-teal-500"
+                  value="medium"
+                  id="medium"
+                  className="cursor-pointer border-teal-500 text-teal-500"
+                />
+                <Label
+                  onPress={onLabelPress('medium')}
+                  htmlFor="medium"
+                  className="cursor-pointer pb-0.5 font-medium leading-none text-teal-500">
+                  Medium
                 </Label>
               </View>
-              <View className="flex items-center gap-4">
-                <RadioGroupItem value="Low Focus" id="r3" />
-                <Label htmlFor="r3" onPress={onLabelPress('Low Focus')}>
-                  Low Focus
+
+              <View className="flex-row items-center gap-2">
+                <RadioGroupItem
+                  indicatorClassName="bg-amber-500"
+                  value="low"
+                  id="low"
+                  className="cursor-pointer border-amber-500 text-amber-500"
+                />
+                <Label
+                  onPress={onLabelPress('low')}
+                  htmlFor="low"
+                  className="cursor-pointer pb-0.5 font-medium leading-none text-amber-500">
+                  Low
                 </Label>
               </View>
             </RadioGroup>
           </View>
           <View className="gap-5">
-            <Label className="font-poppins_thin tracking-widest">SCHEDULE DATE</Label>
+            <Label className="font-poppins_thin tracking-widest">THE DEADLINE</Label>
             <Button
               size={'lg'}
               onPress={() => setShowDatePicker(true)}
@@ -292,19 +454,13 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
               className="flex-row items-center justify-between rounded-2xl border border-border px-4 py-3">
               <View className="flex-row items-center gap-3">
                 <Icon as={Calendar} size={20} className="text-muted-foreground" />
-                <Text
-                  variant={'muted'}
-                  className={cn(
-                    'text-sm',
-                    selectedDate ? 'font-medium text-foreground' : 'text-muted-foreground'
-                  )}>
+                <Text variant={'muted'} className={cn('text-muted-foreground')}>
                   {formatDateDisplay(selectedDate)}
                 </Text>
               </View>
             </Button>
           </View>
 
-          {/* Native Date Picker Modal */}
           {showDatePicker && (
             <DateTimePicker
               value={selectedDate}
@@ -330,10 +486,40 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
           {isSaving && <Spinner className="text-primary-foreground" />}
         </Button>
       </Animated.View>
-
-      {/* <Animated.View
-        className="absolute left-0 right-0 px-8"
-        style={animatedButtonStyle}></Animated.View> */}
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Save before leaving?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={handleConfirmDiscard}>
+              <Text>Discard</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction variant={'default'} onPress={handleSaveTodo}>
+              <Text>Save</Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete todo?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Text>Cancel</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction variant={'destructive'} onPress={handleConfirmDelete}>
+              <Text>Delete</Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
