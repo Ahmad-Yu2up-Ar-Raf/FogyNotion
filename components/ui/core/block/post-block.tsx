@@ -481,7 +481,7 @@ export default function TodoBlock({ mode = 'create', todoData }: PostBlockProps)
           variant="default"
           size={'lg'}>
           <Text className="font-poppins_semibold text-lg text-primary-foreground">
-            {mode == 'edit' ? 'Update' : 'Create'}
+            {mode == 'edit' ? 'Update' : 'Deploy'}
           </Text>
           {isSaving && <Spinner className="text-primary-foreground" />}
         </Button>

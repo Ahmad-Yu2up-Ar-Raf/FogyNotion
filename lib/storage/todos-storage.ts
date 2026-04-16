@@ -217,3 +217,121 @@ export async function searchTodos(query: string): Promise<Todo[]> {
     return [];
   }
 }
+
+/**
+ * ✅ NEW: Fetch only completed todos (server-side filtering)
+ * Reduces data transfer and front-end processing
+ * @returns Array of todos with status === true
+ */
+export async function getCompletedTodos(): Promise<Todos[]> {
+  try {
+    const todos = await getAllTodos();
+    const completed = todos.filter((todo) => todo.status === true);
+
+    console.log('✅ Completed todos fetched:', completed.length);
+    return completed;
+  } catch (error) {
+    console.error('❌ getCompletedTodos error:', error);
+    return [];
+  }
+}
+
+/**
+ * ✅ NEW: Fetch only pending todos
+ * @returns Array of todos with status === false
+ */
+export async function getPendingTodos(): Promise<Todos[]> {
+  try {
+    const todos = await getAllTodos();
+    const pending = todos.filter((todo) => todo.status === false);
+
+    console.log('✅ Pending todos fetched:', pending.length);
+    return pending;
+  } catch (error) {
+    console.error('❌ getPendingTodos error:', error);
+    return [];
+  }
+}
+
+/**
+ * ✅ NEW: Fetch todos by intensity level
+ * @param intensity - 'high' | 'medium' | 'low'
+ * @returns Array of todos matching intensity
+ */
+export async function getTodosByIntensity(intensity: string): Promise<Todos[]> {
+  try {
+    const todos = await getAllTodos();
+    const filtered = todos.filter((todo) => todo.intensity === intensity);
+
+    console.log(`✅ ${intensity} intensity todos fetched:`, filtered.length);
+    return filtered;
+  } catch (error) {
+    console.error(`❌ getTodosByIntensity error:`, error);
+    return [];
+  }
+}
+
+/**
+ * ✅ NEW: Fetch completed todos from TODAY ONLY
+ * @returns Array of completed todos created today
+ */
+export async function getCompletedTodosFromToday(): Promise<Todos[]> {
+  try {
+    const todos = await getCompletedTodos();
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+    const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    const todayTodos = todos.filter((todo) => {
+      const todoDate = new Date(todo.createdAt);
+      return todoDate >= startOfToday && todoDate <= endOfToday;
+    });
+
+    console.log('✅ Completed todos from TODAY fetched:', todayTodos.length);
+    return todayTodos;
+  } catch (error) {
+    console.error('❌ getCompletedTodosFromToday error:', error);
+    return [];
+  }
+}
+
+/**
+ * ✅ NEW: Fetch completed todos from YESTERDAY ONLY
+ * @returns Array of completed todos created yesterday
+ */
+export async function getCompletedTodosFromYesterday(): Promise<Todos[]> {
+  try {
+    const todos = await getCompletedTodos();
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate(),
+      0,
+      0,
+      0
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate(),
+      23,
+      59,
+      59
+    );
+
+    const yesterdayTodos = todos.filter((todo) => {
+      const todoDate = new Date(todo.createdAt);
+      return todoDate >= startOfYesterday && todoDate <= endOfYesterday;
+    });
+
+    console.log('✅ Completed todos from YESTERDAY fetched:', yesterdayTodos.length);
+    return yesterdayTodos;
+  } catch (error) {
+    console.error('❌ getCompletedTodosFromYesterday error:', error);
+    return [];
+  }
+}

@@ -5,9 +5,10 @@ import PostTodoBlock from '@/components/ui/core/block/post-block';
 import { ActivityIndicator, View } from 'react-native';
 import { Text } from '@/components/ui/fragments/shadcn-ui/text';
 import LoadingIndicator from '@/components/ui/core/loading-indicator';
+import PreviewBlock from '@/components/ui/core/block/preview-block';
 
 export default function TodoDetailPage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, mode } = useLocalSearchParams<{ id: string; mode: string }>();
 
   const [todo, setTodo] = useState<Todos | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,10 +69,6 @@ export default function TodoDetailPage() {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // 6️⃣ ERROR STATE
-  // ─────────────────────────────────────────────────────────────
-
   if (error || !todo) {
     return (
       <>
@@ -83,19 +80,14 @@ export default function TodoDetailPage() {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // 7️⃣ SUCCESS: Pass todo data to PostBlock in edit mode
-  // ─────────────────────────────────────────────────────────────
-
   return (
     <>
       <Stack.Screen options={screenOptions} />
-      {/* 
-        ✅ KEY: Import PostBlock directly (not the wrapper)
-        ✅ mode='edit' tells PostBlock this is an edit operation
-        ✅ todoData={todo} pre-fills the form with loaded todo
-      */}
-      <PostTodoBlock mode="edit" todoData={todo} />
+      {mode === 'edit' ? (
+        <PostTodoBlock mode="edit" todoData={todo} />
+      ) : (
+        <PreviewBlock Todo={todo} />
+      )}
     </>
   );
 }

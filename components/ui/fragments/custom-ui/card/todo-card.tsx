@@ -38,6 +38,7 @@ import { DateArg, intervalToDuration, format, compareAsc } from 'date-fns';
 
 import { Checkbox } from '../../shadcn-ui/checkbox';
 import { Badge } from '../../shadcn-ui/badge';
+import { batasiKata } from '@/hooks/useWord';
 
 type TodoCardProps = ViewProps & {
   className?: string;
@@ -60,12 +61,15 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
     return todo.content;
   }, [todo.content]);
 
-  const navigateToDetail = useCallback(() => {
-    router.push({
-      pathname: '/(drawer)/post/[id]',
-      params: { id: todo.id },
-    });
-  }, [todo.id]);
+  const navigateToDetail = useCallback(
+    (mode: string) => {
+      router.push({
+        pathname: '/(drawer)/post/[id]',
+        params: { id: todo.id, mode: mode },
+      });
+    },
+    [todo.id]
+  );
 
   const handleUpdateStatus = useCallback(async () => {
     try {
@@ -104,7 +108,7 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
     todo && todo.date && typeof todo.date === 'string' ? new Date(todo.date) : todo.date;
   const end = DateT; // Target date
   const formattedDate = format(`${DateT}`, 'MM/dd/yyyy');
-
+  const title = batasiKata(todo.title, 2);
   return (
     <>
       <Card
@@ -132,10 +136,10 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
               <View className="item w-fit flex-row items-center gap-3">
                 <CardTitle
                   className={cn(
-                    'line-clamp-1 w-fit font-poppins_thin text-lg text-foreground',
+                    'line-clamp-1 font-poppins_thin text-lg text-foreground',
                     todo.status && 'text-muted-foreground line-through'
                   )}>
-                  {todo.title || 'Untitled'}
+                  {title}
                 </CardTitle>
                 <Text variant={'muted'} className="opacity-55">
                   •
@@ -167,7 +171,10 @@ export function TodoCard({ className, index, todo, onDelete, ...props }: TodoCar
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="min-w-[140px]">
-                  <DropdownMenuItem onPress={navigateToDetail} className="gap-2">
+                  <DropdownMenuItem onPress={() => navigateToDetail('preview')} className="gap-2">
+                    <Text>Preview</Text>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onPress={() => navigateToDetail('edit')} className="gap-2">
                     <Text>Edit</Text>
                   </DropdownMenuItem>
 

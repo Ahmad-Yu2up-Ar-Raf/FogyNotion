@@ -215,6 +215,7 @@ export const Image = forwardRef<ExpoImage, ImageProps>(
 
     const imageStyle = {
       width: width ?? '100%',
+
       height: height ?? '100%',
       ...(aspectRatio && !height ? { aspectRatio } : {}),
     } as const;

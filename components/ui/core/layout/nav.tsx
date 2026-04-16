@@ -74,7 +74,7 @@ function HeaderComponent({
   const currentTheme = colorScheme ?? 'light';
 
   const handleLeave = () => {
-    router.push('/');
+    router.back();
   };
   const handlePost = () => {
     router.push('/(drawer)/post');
